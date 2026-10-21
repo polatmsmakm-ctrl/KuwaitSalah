@@ -16,6 +16,7 @@ struct MemorizeView: View {
     private enum Phase { case idle, sheikh, you }
     @State private var phase: Phase = .idle
     @State private var note: String?
+    @State private var carry: [String] = []
     @State private var alerted = Set<Int>()
     @State private var originStart: AyahRef
     @State private var originCount = 1
@@ -46,7 +47,7 @@ struct MemorizeView: View {
     }
 
     private var result: AlignResult {
-        RecitationAligner.align(expected: tokens, heard: listener.heard)
+        RecitationAligner.align(expected: tokens, heard: carry + listener.heard)
     }
 
     var body: some View {
@@ -82,7 +83,11 @@ struct MemorizeView: View {
             }
         }
         .onChange(of: listener.isListening) { _, on in
-            if !on && !listener.heard.isEmpty && !advancing { finished = true }
+            if !on && !listener.heard.isEmpty && !advancing {
+                finished = true
+                carry += listener.heard
+                listener.clearHeard()
+            }
         }
         .onChange(of: res.mistakes) { _, _ in
             guard listener.isListening else { return }
@@ -188,6 +193,7 @@ struct MemorizeView: View {
     private func beginRound() {
         guard let s = surah else { return }
         alerted = []
+        carry = []
         finished = false
         if listenFirst {
             phase = .sheikh
@@ -316,7 +322,7 @@ struct MemorizeView: View {
                     listener.stop()
                     phase = .idle
                     note = nil
-                    finished = !listener.heard.isEmpty
+                    finished = !listener.heard.isEmpty || !carry.isEmpty
                 } else {
                     player.stop()
                     if advanced {
@@ -344,6 +350,30 @@ struct MemorizeView: View {
                 .background(active ? Color.red : Theme.emerald, in: Capsule())
             }
             .buttonStyle(.plain)
+            if canResume {
+                Button {
+                    player.stop()
+                    note = nil
+                    phase = .you
+                    finished = false
+                    listener.start()
+                } label: {
+                    Label("متابعة من حيث توقفت", systemImage: "play.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(Theme.accent)
+                        .background(Theme.accent.opacity(0.15), in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
         }
+    }
+
+    /// توقفت في النص: تقدر تكمل من نفس المكان بدل ما تعيد من البداية
+    private var canResume: Bool {
+        let n = tokens.count
+        let p = result.progress
+        return finished && !listener.isListening && phase != .sheikh && p > 0 && p < n
     }
 }

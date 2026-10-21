@@ -80,7 +80,10 @@ final class RecitationListener: ObservableObject {
         }
     }
 
+    func clearHeard() { heard = [] }
+
     func stop() {
+        session += 1
         request?.endAudio()
         finish()
     }
