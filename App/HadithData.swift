@@ -63,11 +63,11 @@ enum HadithLoader {
     }
 
     /// بحث: كل كلمات الاستعلام يجب أن تظهر (بدون تشكيل أو ألفات)
-    static func search(_ query: String, keys: [String], limit: Int) -> [Int] {
+    static func search(_ query: String, keys: [String], limit: Int, in range: Range<Int>? = nil) -> [Int] {
         let words = QuranText.searchKey(query).split(separator: " ").map(String.init)
         guard !words.isEmpty, words.joined().count >= 2 else { return [] }
         var out: [Int] = []
-        for (i, k) in keys.enumerated() where words.allSatisfy({ k.contains($0) }) {
+        for (i, k) in keys.enumerated() where (range?.contains(i) ?? true) && words.allSatisfy({ k.contains($0) }) {
             out.append(i)
             if out.count >= limit { break }
         }
@@ -111,7 +111,7 @@ final class HadithStore: ObservableObject {
         keysReady = true
     }
 
-    func search(_ query: String, limit: Int = 60) async -> [HadithItem] {
+    func search(_ query: String, limit: Int = 60, book only: Int? = nil, chapter: Int? = nil) async -> [HadithItem] {
         await loadIfNeeded()
         searching = true
         defer { searching = false }
@@ -119,9 +119,12 @@ final class HadithStore: ObservableObject {
         let snapshot = books
         let hits = await Task.detached(priority: .userInitiated) { () -> [HadithItem] in
             var all: [HadithItem] = []
-            for b in snapshot {
+            for (bi, b) in snapshot.enumerated() {
                 guard let b = b else { continue }
-                let idx = HadithLoader.search(query, keys: b.keys, limit: limit)
+                if let only = only, only != bi { continue }
+                var range: Range<Int>? = nil
+                if let c = chapter, c >= 0, c < b.ranges.count { range = b.ranges[c] }
+                let idx = HadithLoader.search(query, keys: b.keys, limit: limit, in: range)
                 all.append(contentsOf: idx.map { b.items[$0] })
             }
             return all

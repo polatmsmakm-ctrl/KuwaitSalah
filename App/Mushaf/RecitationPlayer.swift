@@ -35,10 +35,20 @@ final class RecitationPlayer: ObservableObject {
     private var audio: ChapterAudio?
     private var chapter = 0
     private var generation = 0
+    private var lastRequested: AyahRef?
 
     init() {
         let saved = UserDefaults.standard.integer(forKey: "mushaf.reciter")
         reciterID = Self.reciters.contains(where: { $0.id == saved }) ? saved : 7
+    }
+
+    /// تغيير القارئ: إن كانت التلاوة شغّالة تنتقل فوراً للقارئ الجديد من نفس الآية
+    func setReciter(_ id: Int) {
+        guard id != reciterID else { return }
+        let resume = currentAyah ?? lastRequested
+        let wasActive = isPlaying || loading
+        reciterID = id
+        if wasActive, let r = resume { play(surah: r.s, ayah: r.a) }
     }
 
     var reciterName: String {
@@ -50,6 +60,7 @@ final class RecitationPlayer: ObservableObject {
         generation += 1
         let gen = generation
         chapter = surah
+        lastRequested = AyahRef(s: surah, a: ayah)
         loading = true
         error = nil
         let reciter = reciterID

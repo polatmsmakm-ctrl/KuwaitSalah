@@ -87,7 +87,7 @@ struct MushafView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Picker("القارئ", selection: $player.reciterID) {
+                    Picker("القارئ", selection: Binding(get: { player.reciterID }, set: { player.setReciter($0) })) {
                         ForEach(RecitationPlayer.reciters, id: \.id) { r in Text(r.name).tag(r.id) }
                     }
                 } label: {

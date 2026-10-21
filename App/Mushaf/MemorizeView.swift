@@ -11,6 +11,7 @@ struct MemorizeView: View {
     @State private var count = 1
     @State private var hideWords = true
     @State private var finished = false
+    @State private var advancing = false
 
     init(start: AyahRef) {
         _start = State(initialValue: start)
@@ -56,10 +57,6 @@ struct MemorizeView: View {
                             Text(e).font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center)
                         }
                         micButton
-                        Text("التعرّف الصوتي من أبل قد يخطئ أحياناً؛ اقرأ بوضوح وبسرعة معتدلة.")
-                            .font(.caption)
-                            .foregroundStyle(Theme.inkSecondary)
-                            .multilineTextAlignment(.center)
                     }
                     .padding(16)
                 }
@@ -76,7 +73,12 @@ struct MemorizeView: View {
             }
         }
         .onChange(of: listener.isListening) { _, on in
-            if !on && !listener.heard.isEmpty { finished = true }
+            if !on && !listener.heard.isEmpty && !advancing { finished = true }
+        }
+        .onChange(of: res.progress) { _, p in
+            // أكمل الآية/الآيات المطلوبة: انتقل تلقائياً للتي بعدها واستمر بالاستماع
+            guard listener.isListening, !toks.isEmpty, p >= toks.count else { return }
+            advanceToNext()
         }
         .onDisappear { listener.stop() }
     }
@@ -117,6 +119,27 @@ struct MemorizeView: View {
         .padding(14)
         .glassCard(20)
         .onChange(of: count) { _, _ in resetAttempt() }
+    }
+
+    /// ينتقل للآيات التالية ويعيد الاستماع (الجلسة الصوتية من أبل تُقطع بعد وقت قصير، فنبدأ جلسة جديدة لكل آية)
+    private func advanceToNext() {
+        guard let s = surah else { return }
+        let next = start.a + count
+        advancing = true
+        listener.stop()
+        if next > s.ayahs.count {
+            // نهاية السورة
+            advancing = false
+            finished = true
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            start = AyahRef(s: start.s, a: next)
+            count = min(count, max(1, s.ayahs.count - next + 1))
+            finished = false
+            listener.start()
+            advancing = false
+        }
     }
 
     private func resetAttempt() {

@@ -12,6 +12,7 @@ final class RecitationListener: ObservableObject {
     private let engine = AVAudioEngine()
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
+    private var session = 0
 
     func start() {
         error = nil
@@ -41,10 +42,12 @@ final class RecitationListener: ObservableObject {
 
     private func begin(_ recognizer: SFSpeechRecognizer) {
         stop()
+        session += 1
+        let mine = session
         do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .defaultToSpeaker])
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .defaultToSpeaker])
+            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
             let req = SFSpeechAudioBufferRecognitionRequest()
             req.shouldReportPartialResults = true
             request = req
@@ -59,7 +62,7 @@ final class RecitationListener: ObservableObject {
             isListening = true
             task = recognizer.recognitionTask(with: req) { [weak self] result, err in
                 DispatchQueue.main.async {
-                    guard let self = self else { return }
+                    guard let self = self, mine == self.session else { return }
                     if let r = result {
                         self.heard = r.bestTranscription.formattedString
                             .split(whereSeparator: { $0 == " " || $0 == "\n" })

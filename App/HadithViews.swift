@@ -155,12 +155,26 @@ struct HadithChapterView: View {
     let target: HadithChapterTarget
     @EnvironmentObject var store: Store
     @EnvironmentObject var hadith: HadithStore
+    @State private var query = ""
+    @State private var hits: [HadithItem] = []
+
+    private var isSearching: Bool {
+        QuranText.searchKey(query.trimmingCharacters(in: .whitespaces)).count >= 2
+    }
+
+    private var scopeName: String {
+        target.chapter < 0
+            ? HadithStore.bookNames[target.book]
+            : (hadith.books[target.book]?.chapters[target.chapter] ?? "")
+    }
 
     var body: some View {
         ZStack {
             AppBackground(kind: .quran)
             if let book = hadith.books[target.book] {
-                if target.chapter < 0 {
+                if isSearching {
+                    searchList
+                } else if target.chapter < 0 {
                     chapterList(book)
                 } else {
                     hadithList(book)
@@ -173,6 +187,36 @@ struct HadithChapterView: View {
             ? HadithStore.bookNames[target.book]
             : (hadith.books[target.book]?.chapters[target.chapter] ?? ""))
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $query, prompt: "ابحث في \(scopeName)")
+        .task(id: query) {
+            let q = query.trimmingCharacters(in: .whitespaces)
+            guard QuranText.searchKey(q).count >= 2 else { hits = []; return }
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            if Task.isCancelled { return }
+            let r = await hadith.search(q, limit: 100, book: target.book, chapter: target.chapter < 0 ? nil : target.chapter)
+            if !Task.isCancelled { hits = r }
+        }
+    }
+
+    private var searchList: some View {
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                if hadith.searching && hits.isEmpty {
+                    ProgressView().tint(Theme.accent).padding(.top, 30)
+                } else if hits.isEmpty {
+                    Text("لا توجد نتائج").foregroundStyle(Theme.inkSecondary).padding(.top, 30)
+                } else {
+                    Text("النتائج (أول ١٠٠)")
+                        .font(.footnote).foregroundStyle(Theme.inkSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    ForEach(hits) { h in
+                        NavigationLink { HadithDetailView(item: h) } label: { HadithCard(item: h, lines: 4) }.buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
+        }
     }
 
     private func chapterList(_ book: HadithBook) -> some View {
