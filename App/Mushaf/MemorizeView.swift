@@ -17,6 +17,7 @@ struct MemorizeView: View {
     @State private var phase: Phase = .idle
     @State private var note: String?
     @State private var carry: [String] = []
+    @State private var paused = false
     @State private var alerted = Set<Int>()
     @State private var originStart: AyahRef
     @State private var originCount = 1
@@ -47,7 +48,8 @@ struct MemorizeView: View {
     }
 
     private var result: AlignResult {
-        RecitationAligner.align(expected: tokens, heard: carry + listener.heard)
+        phase == .sheikh ? RecitationAligner.align(expected: tokens, heard: [])
+                         : RecitationAligner.align(expected: tokens, heard: carry + listener.heard)
     }
 
     var body: some View {
@@ -194,6 +196,8 @@ struct MemorizeView: View {
         guard let s = surah else { return }
         alerted = []
         carry = []
+        paused = false
+        listener.clearHeard()
         finished = false
         if listenFirst {
             phase = .sheikh
@@ -350,12 +354,27 @@ struct MemorizeView: View {
                 .background(active ? Color.red : Theme.emerald, in: Capsule())
             }
             .buttonStyle(.plain)
+            if listener.isListening {
+                Button {
+                    paused = true
+                    listener.stop()
+                } label: {
+                    Label("إيقاف مؤقت", systemImage: "pause.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(Theme.accent)
+                        .background(Theme.accent.opacity(0.15), in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
             if canResume {
                 Button {
                     player.stop()
                     note = nil
                     phase = .you
                     finished = false
+                    paused = false
                     listener.start()
                 } label: {
                     Label("متابعة من حيث توقفت", systemImage: "play.circle.fill")
@@ -374,6 +393,6 @@ struct MemorizeView: View {
     private var canResume: Bool {
         let n = tokens.count
         let p = result.progress
-        return finished && !listener.isListening && phase != .sheikh && p > 0 && p < n
+        return !listener.isListening && phase != .sheikh && n > 0 && p < n && (paused || (finished && p > 0))
     }
 }
