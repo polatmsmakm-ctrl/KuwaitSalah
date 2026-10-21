@@ -60,11 +60,11 @@ struct QiblaView: View {
         let aligned = hp.gotReading && abs(diff) < 3
 
         ZStack {
-            LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
-            VStack(spacing: 28) {
+            NightBackground()
+            VStack(spacing: 26) {
                 Text("اتجاه القبلة")
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.system(size: 30, weight: .bold))
+                    .shadow(color: Color.black.opacity(0.3), radius: 6)
 
                 CompassDial(heading: hp.heading, bearing: bearing, aligned: aligned)
 
@@ -75,7 +75,7 @@ struct QiblaView: View {
                         Text("جارٍ قراءة البوصلة…")
                     } else if aligned {
                         Text("أنت باتجاه القبلة")
-                            .font(.title3.bold())
+                            .font(.title2.bold())
                             .foregroundStyle(Color.green)
                     } else {
                         Text(diff > 0 ? "أدر الجهاز لليمين" : "أدر الجهاز لليسار")
@@ -108,11 +108,23 @@ struct CompassDial: View {
     let bearing: Double
     let aligned: Bool
 
+    private let cardinals: [(String, Double)] = [("ش", 0), ("شرق", 90), ("ج", 180), ("غرب", 270)]
+
     var body: some View {
         ZStack {
             Circle()
                 .fill(.ultraThinMaterial)
                 .frame(width: 290, height: 290)
+            Circle()
+                .stroke(
+                    AngularGradient(colors: [Theme.gold, Theme.gold.opacity(0.25), Theme.gold],
+                                    center: .center),
+                    lineWidth: 3
+                )
+                .frame(width: 290, height: 290)
+            Circle()
+                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                .frame(width: 190, height: 190)
 
             ZStack {
                 ForEach(0..<72, id: \.self) { i in
@@ -120,22 +132,30 @@ struct CompassDial: View {
                     Rectangle()
                         .fill(Color.white.opacity(major ? 0.9 : 0.35))
                         .frame(width: major ? 3 : 1.5, height: major ? 14 : 8)
-                        .offset(y: -138)
+                        .offset(y: -132)
                         .rotationEffect(.degrees(Double(i) * 5.0))
                 }
-                Text("ش")
-                    .font(.headline)
-                    .offset(y: -112)
+
+                ForEach(0..<4, id: \.self) { i in
+                    Text(cardinals[i].0)
+                        .font(.system(size: i == 0 ? 17 : 13, weight: .bold))
+                        .foregroundStyle(i == 0 ? Color.red.opacity(0.9) : Color.white.opacity(0.8))
+                        .rotationEffect(.degrees(-cardinals[i].1))
+                        .offset(y: -106)
+                        .rotationEffect(.degrees(cardinals[i].1))
+                }
 
                 ZStack {
                     Rectangle()
-                        .fill(Theme.gold.opacity(0.55))
-                        .frame(width: 2, height: 100)
-                        .offset(y: -50)
+                        .fill(LinearGradient(colors: [Theme.gold, Theme.gold.opacity(0.0)],
+                                             startPoint: .top, endPoint: .bottom))
+                        .frame(width: 3, height: 90)
+                        .offset(y: -62)
                     Image(systemName: "moon.stars.fill")
-                        .font(.title2)
+                        .font(.system(size: 28))
                         .foregroundStyle(Theme.gold)
-                        .offset(y: -118)
+                        .shadow(color: Theme.gold, radius: 10)
+                        .offset(y: -86)
                 }
                 .rotationEffect(.degrees(bearing))
             }
@@ -148,9 +168,11 @@ struct CompassDial: View {
                 .offset(y: -160)
 
             Circle()
-                .fill(aligned ? Color.green : Color.white.opacity(0.8))
-                .frame(width: 10, height: 10)
+                .fill(aligned ? Color.green : Color.white.opacity(0.85))
+                .frame(width: 12, height: 12)
         }
         .frame(width: 320, height: 320)
+        .shadow(color: aligned ? Color.green.opacity(0.7) : Color.clear, radius: 24)
+        .animation(.easeInOut(duration: 0.3), value: aligned)
     }
 }

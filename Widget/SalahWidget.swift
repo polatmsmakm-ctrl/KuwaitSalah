@@ -85,7 +85,10 @@ struct SalahWidgetView: View {
         }
         .environment(\.layoutDirection, .rightToLeft)
         .containerBackground(for: .widget) {
-            Theme.gradient(now: entry.date, today: entry.today)
+            ZStack {
+                Theme.gradient(now: entry.date, today: entry.today)
+                SkyDecoration(night: Theme.isNight(now: entry.date, today: entry.today))
+            }
         }
     }
 

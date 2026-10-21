@@ -36,5 +36,7 @@ struct RootView: View {
             SettingsView()
                 .tabItem { Label("الإعدادات", systemImage: "gearshape.fill") }
         }
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
     }
 }

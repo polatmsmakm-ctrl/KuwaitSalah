@@ -19,7 +19,42 @@ enum Theme {
         return night
     }
 
+    static func isNight(now: Date, today: DayTimes) -> Bool {
+        now < today[.fajr] || now >= today[.isha]
+    }
+
+    /// شدة النجوم: ليل كامل ١، فجر/غروب نصف
+    static func starIntensity(now: Date, today: DayTimes) -> Double {
+        if isNight(now: now, today: today) { return 1.0 }
+        if now < today[.sunrise] { return 0.45 }
+        if now >= today[.maghrib] { return 0.5 }
+        return 0.0
+    }
+
     static func gradient(now: Date, today: DayTimes) -> LinearGradient {
         LinearGradient(colors: colors(now: now, today: today), startPoint: .top, endPoint: .bottom)
+    }
+}
+
+/// زخرفة خفيفة للويدجت: توهج شمس/قمر ونجوم ثابتة
+struct SkyDecoration: View {
+    let night: Bool
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(RadialGradient(colors: [Theme.gold.opacity(night ? 0.18 : 0.40), Color.clear],
+                                     center: .center, startRadius: 0, endRadius: 90))
+                .frame(width: 180, height: 180)
+                .offset(x: 70, y: -60)
+            if night {
+                ForEach(0..<14, id: \.self) { i in
+                    Circle()
+                        .fill(Color.white.opacity(0.5))
+                        .frame(width: i % 3 == 0 ? 2.5 : 1.5, height: i % 3 == 0 ? 2.5 : 1.5)
+                        .offset(x: CGFloat((i * 53) % 160) - 80, y: CGFloat((i * 37) % 120) - 60)
+                }
+            }
+        }
     }
 }

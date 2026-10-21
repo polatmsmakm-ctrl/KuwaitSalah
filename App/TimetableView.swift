@@ -20,8 +20,7 @@ struct TimetableView: View {
         let title = days.first.map { fmt.custom($0, "MMMM yyyy") } ?? ""
 
         ZStack {
-            LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
-                .ignoresSafeArea()
+            NightBackground()
             VStack(spacing: 10) {
                 HStack {
                     Button {
@@ -92,8 +91,13 @@ struct TimetableView: View {
         }
         .padding(.vertical, 7)
         .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(isToday ? Theme.gold.opacity(0.30) : (friday ? Color.white.opacity(0.10) : Color.white.opacity(0.04)))
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isToday ? AnyShapeStyle(Theme.gold.opacity(0.32))
+                              : (friday ? AnyShapeStyle(Color.white.opacity(0.12)) : AnyShapeStyle(.ultraThinMaterial)))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isToday ? Theme.gold : Color.clear, lineWidth: 1.2)
         )
     }
 }

@@ -121,6 +121,8 @@ struct SettingsView: View {
                     Text("تُجدول الإشعارات لأسبوع قادم وتتجدد كل ما فتحت التطبيق. افتحه مرة بالأسبوع على الأقل.")
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(NightBackground())
             .navigationTitle("الإعدادات")
             .navigationBarTitleDisplayMode(.inline)
             .task {
