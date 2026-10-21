@@ -39,7 +39,7 @@ final class PrayerCalcTests: XCTestCase {
 
     func testQiblaFromKuwaitCity() {
         let b = PrayerCalc.qiblaBearing(lat: 29.3759, lng: 47.9774)
-        XCTAssertTrue((243.0...247.0).contains(b), "bearing was \(b)")
+        XCTAssertTrue((223.5...225.5).contains(b), "bearing was \(b)")
     }
 
     func testNearestRegion() {
