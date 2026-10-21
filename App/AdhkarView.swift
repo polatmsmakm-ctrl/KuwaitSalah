@@ -154,6 +154,7 @@ struct AdhkarListView: View {
                         }
                         .buttonStyle(.plain)
                     }
+                    DevCredit()
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)

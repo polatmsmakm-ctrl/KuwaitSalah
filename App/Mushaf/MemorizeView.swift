@@ -9,7 +9,7 @@ struct MemorizeView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var listener = RecitationListener()
     @State private var count = 1
-    @State private var hideWords = true
+    @AppStorage("memorize.hideWords") private var hideWords = true
     @State private var finished = false
     @State private var advancing = false
     @State private var alerted = Set<Int>()
@@ -110,8 +110,11 @@ struct MemorizeView: View {
                     .foregroundStyle(Theme.ink)
             }
             .disabled(listener.isListening)
-            Toggle("إخفاء الكلمات حتى تقرأها", isOn: $hideWords)
-                .foregroundStyle(Theme.ink)
+            Picker("طريقة التسميع", selection: $hideWords) {
+                Text("من الحفظ (مخفية)").tag(true)
+                Text("مع رؤية الآية").tag(false)
+            }
+            .pickerStyle(.segmented)
             HStack(spacing: 10) {
                 Button {
                     player.play(surah: start.s, ayah: start.a)

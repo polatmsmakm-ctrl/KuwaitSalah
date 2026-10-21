@@ -116,6 +116,6 @@ struct SkyArc: View {
                     .position(x: cx + r, y: cy + 16)
             }
         }
-        .frame(height: 150)
+        .frame(height: 185)
     }
 }
