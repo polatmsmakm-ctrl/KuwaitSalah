@@ -6,6 +6,8 @@ struct KuwaitSalahApp: App {
     @StateObject private var quran = QuranStore()
     @StateObject private var adhkar = AdhkarStore()
     @StateObject private var hadith = HadithStore()
+    @StateObject private var mushaf = MushafModel()
+    @StateObject private var player = RecitationPlayer.shared
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
@@ -15,6 +17,8 @@ struct KuwaitSalahApp: App {
                 .environmentObject(quran)
                 .environmentObject(adhkar)
                 .environmentObject(hadith)
+                .environmentObject(mushaf)
+                .environmentObject(player)
                 .environment(\.layoutDirection, .rightToLeft)
                 .preferredColorScheme(store.colorScheme)
                 .tint(Theme.accent)

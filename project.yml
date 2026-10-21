@@ -28,6 +28,12 @@ targets:
         CFBundleName: KuwaitSalah
         UILaunchScreen: {}
         NSLocationWhenInUseUsageDescription: لتحديد اتجاه القبلة باستخدام البوصلة
+        NSMicrophoneUsageDescription: لتسميع القرآن بصوتك ومقارنته بالنص
+        NSSpeechRecognitionUsageDescription: للتعرّف على تلاوتك وكشف الأخطاء في الحفظ
+        UIBackgroundModes:
+          - audio
+        UIAppFonts:
+          - AmiriQuran.ttf
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:

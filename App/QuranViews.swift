@@ -34,6 +34,8 @@ struct QuranHomeView: View {
     @State private var query: String = ""
     @State private var hits: [AyahHit] = []
     @State private var mode: Int = 0
+    @AppStorage("mushaf.lastPage") private var mushafLastPage = 1
+    @State private var showMemorize = false
 
     private var filteredSurahs: [Surah] {
         let q = query.trimmingCharacters(in: .whitespaces)
@@ -56,6 +58,9 @@ struct QuranHomeView: View {
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: ReaderTarget.self) { t in
                 SurahReaderView(target: t)
+            }
+            .navigationDestination(for: MushafTarget.self) { t in
+                MushafView(target: t)
             }
             .searchable(text: $query, prompt: "ابحث عن سورة أو آية")
             .task(id: query) {
@@ -95,6 +100,10 @@ struct QuranHomeView: View {
                     .pickerStyle(.segmented)
                     .padding(.bottom, 4)
 
+                    if mode == 0 && query.isEmpty {
+                        mushafCards
+                    }
+
                     if mode == 0 {
                         surahList
                     } else {
@@ -104,6 +113,54 @@ struct QuranHomeView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var mushafCards: some View {
+        NavigationLink(value: MushafTarget(page: mushafLastPage, focus: nil)) {
+            HStack(spacing: 12) {
+                Image(systemName: "book.pages.fill")
+                    .font(.title2)
+                    .foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("المصحف الشريف").font(.system(size: 18, weight: .bold))
+                    Text("٦٠٤ صفحات · استماع بتظليل الكلمات · تفسير")
+                        .font(.caption)
+                        .foregroundStyle(Theme.inkSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(14)
+            .glassCard(18)
+        }
+        .buttonStyle(.plain)
+
+        Button {
+            showMemorize = true
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "mic.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("الحفظ والتسميع").font(.system(size: 18, weight: .bold))
+                    Text("اقرأ بصوتك والتطبيق يكشف الأخطاء")
+                        .font(.caption)
+                        .foregroundStyle(Theme.inkSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(14)
+            .glassCard(18)
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showMemorize) {
+            MemorizeView(start: quran.lastRead ?? AyahRef(s: 1, a: 1))
         }
     }
 
@@ -355,6 +412,9 @@ struct AyahRow: View {
     let onDisappear: () -> Void
     @EnvironmentObject var store: Store
     @EnvironmentObject var quran: QuranStore
+    private let player = RecitationPlayer.shared
+    @State private var tafsirRef: AyahRef?
+    @State private var memoRef: AyahRef?
 
     var body: some View {
         let fmt = store.fmt
@@ -374,6 +434,21 @@ struct AyahRow: View {
                         quran.lastRead = ref
                     } label: {
                         Label("علّم هنا كموضع قراءة", systemImage: "bookmark")
+                    }
+                    Button {
+                        player.play(surah: surah, ayah: number)
+                    } label: {
+                        Label("استماع", systemImage: "play.circle")
+                    }
+                    Button {
+                        tafsirRef = ref
+                    } label: {
+                        Label("تفسير", systemImage: "text.book.closed")
+                    }
+                    Button {
+                        memoRef = ref
+                    } label: {
+                        Label("حفظ وتسميع", systemImage: "mic")
                     }
                     Button {
                         UIPasteboard.general.string = text
@@ -411,5 +486,7 @@ struct AyahRow: View {
         .padding(.vertical, 8)
         .onAppear(perform: onAppear)
         .onDisappear(perform: onDisappear)
+        .sheet(item: $tafsirRef) { r in TafsirSheet(ref: r) }
+        .sheet(item: $memoRef) { r in MemorizeView(start: r) }
     }
 }
