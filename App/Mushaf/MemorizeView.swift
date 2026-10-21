@@ -168,7 +168,7 @@ struct MemorizeView: View {
 
     @ViewBuilder
     private func wordsCard(_ toks: [String], _ res: AlignResult) -> some View {
-        FlowLayout(spacing: 10, lineSpacing: 14, rtl: true) {
+        FlowLayout(spacing: 10, lineSpacing: 14, rtl: false) {
             ForEach(Array(toks.enumerated()), id: \.offset) { i, w in
                 chip(w, state: i < res.states.count ? res.states[i] : .pending)
             }

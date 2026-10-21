@@ -96,7 +96,6 @@ struct QiblaView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
                 }
-                DevCredit().padding(.top, -8).padding(.bottom, -60)
             }
             .foregroundStyle(Theme.ink)
         }

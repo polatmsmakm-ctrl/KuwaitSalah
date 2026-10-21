@@ -60,7 +60,6 @@ struct HomeContent: View {
                     ShortcutsRow()
                     PrayerListView(now: now, today: today, nxt: nxt)
                     DhikrCard(now: now)
-                    DevCredit()
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)

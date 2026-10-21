@@ -48,6 +48,26 @@ struct SalahProvider: TimelineProvider {
 
 // MARK: - Views
 
+/// خلفية السديم (نفس هوية التطبيق) مع تعتيم لقراءة النص
+struct WidgetNebula: View {
+    let name: String
+
+    var body: some View {
+        ZStack {
+            LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
+            if let p = Bundle.main.path(forResource: name, ofType: "jpg"),
+               let img = UIImage(contentsOfFile: p) {
+                Color.clear.overlay(
+                    Image(uiImage: img).resizable().scaledToFill()
+                )
+                .clipped()
+            }
+            LinearGradient(colors: [Color.black.opacity(0.42), Color.black.opacity(0.58)],
+                           startPoint: .top, endPoint: .bottom)
+        }
+    }
+}
+
 struct SalahWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: SalahEntry
@@ -85,10 +105,7 @@ struct SalahWidgetView: View {
         }
         .environment(\.layoutDirection, .rightToLeft)
         .containerBackground(for: .widget) {
-            ZStack {
-                Theme.gradient(now: entry.date, today: entry.today)
-                SkyDecoration(night: Theme.isNight(now: entry.date, today: entry.today))
-            }
+            WidgetNebula(name: family == .systemSmall ? "wd_pillar" : "wd_eagle")
         }
     }
 
@@ -103,13 +120,17 @@ struct SalahWidgetView: View {
                 .font(.headline)
             Spacer(minLength: 2)
             Text(entry.nextDate, style: .timer)
-                .font(.title3.weight(.semibold))
+                .font(.title3.weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(Theme.gold)
+                .shadow(color: Theme.gold.opacity(0.5), radius: 6)
             if let iq = nextIqama {
                 Text("الإقامة \(fmt.time(iq))")
                     .font(.caption2)
-                    .opacity(0.85)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.white.opacity(0.12), in: Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
             }
         }
         .foregroundStyle(.white)
@@ -159,7 +180,9 @@ struct SalahWidgetView: View {
                     largeRow(p)
                 }
             }
-            .background(Color.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.14), lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .foregroundStyle(.white)
     }
@@ -191,7 +214,7 @@ struct SalahWidgetView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background(isNext ? Color.white.opacity(0.14) : Color.clear)
+        .background(isNext ? Theme.gold.opacity(0.20) : Color.clear)
     }
 
     private func column(_ p: Prayer) -> some View {
@@ -218,7 +241,8 @@ struct SalahWidgetView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
-        .background(isNext ? Color.white.opacity(0.22) : Color.clear, in: RoundedRectangle(cornerRadius: 10))
+        .background(isNext ? Theme.gold.opacity(0.20) : Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(isNext ? Theme.gold.opacity(0.7) : Color.white.opacity(0.10), lineWidth: 1))
     }
 
     private var circular: some View {
