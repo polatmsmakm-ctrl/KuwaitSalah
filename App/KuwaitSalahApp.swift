@@ -10,7 +10,8 @@ struct KuwaitSalahApp: App {
             RootView()
                 .environmentObject(store)
                 .environment(\.layoutDirection, .rightToLeft)
-                .tint(Color(red: 0.05, green: 0.45, blue: 0.35))
+                .preferredColorScheme(.dark)
+                .tint(Theme.gold)
                 .onChange(of: phase) { _, newPhase in
                     if newPhase == .active { store.refreshNotifications() }
                 }
@@ -25,11 +26,15 @@ struct RootView: View {
     var body: some View {
         TabView {
             HomeView()
-                .tabItem { Label("الأوقات", systemImage: "clock") }
-            MosquesView()
-                .tabItem { Label("المساجد", systemImage: "building.columns") }
+                .tabItem { Label("الأوقات", systemImage: "clock.fill") }
+            QiblaView()
+                .tabItem { Label("القبلة", systemImage: "location.north.circle.fill") }
+            TimetableView()
+                .tabItem { Label("الشهر", systemImage: "calendar") }
+            TasbihView()
+                .tabItem { Label("التسبيح", systemImage: "circle.hexagongrid.fill") }
             SettingsView()
-                .tabItem { Label("الإعدادات", systemImage: "gearshape") }
+                .tabItem { Label("الإعدادات", systemImage: "gearshape.fill") }
         }
     }
 }

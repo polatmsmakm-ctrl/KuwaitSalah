@@ -27,6 +27,7 @@ targets:
         CFBundleDisplayName: أوقات الصلاة
         CFBundleName: KuwaitSalah
         UILaunchScreen: {}
+        NSLocationWhenInUseUsageDescription: لتحديد اتجاه القبلة باستخدام البوصلة
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
@@ -44,7 +45,8 @@ targets:
       - Widget
       - Shared/Prayer.swift
       - Shared/PrayerCalc.swift
-      - Shared/Mosque.swift
+      - Shared/Iqama.swift
+      - Shared/Theme.swift
       - Shared/Format.swift
     info:
       path: Widget/Info.plist

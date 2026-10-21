@@ -139,6 +139,30 @@ enum PrayerCalc {
         return (.fajr, now)
     }
 
+    /// Latest of the five prayers at or before `now`.
+    static func previous(before now: Date, region: Region, settings: CalcSettings) -> (prayer: Prayer, date: Date) {
+        for off in [0, -1, -2] {
+            let day = calendar.date(byAdding: .day, value: off, to: now) ?? now
+            let dt = compute(day: day, region: region, settings: settings)
+            for p in Prayer.fivePrayers.reversed() {
+                if dt[p] <= now { return (p, dt[p]) }
+            }
+        }
+        return (.isha, now)
+    }
+
+    /// اتجاه القبلة بالدرجات من الشمال الحقيقي
+    static func qiblaBearing(lat: Double, lng: Double) -> Double {
+        let kaabaLat = 21.4225 * Double.pi / 180.0
+        let kaabaLng = 39.8262
+        let p1 = lat * Double.pi / 180.0
+        let dl = (kaabaLng - lng) * Double.pi / 180.0
+        let y = sin(dl) * cos(kaabaLat)
+        let x = cos(p1) * sin(kaabaLat) - sin(p1) * cos(kaabaLat) * cos(dl)
+        let deg = atan2(y, x) * 180.0 / Double.pi
+        return (deg + 360.0).truncatingRemainder(dividingBy: 360.0)
+    }
+
     static func isFriday(_ d: Date) -> Bool {
         calendar.component(.weekday, from: d) == 6
     }

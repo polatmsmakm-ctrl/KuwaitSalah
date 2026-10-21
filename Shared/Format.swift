@@ -21,6 +21,15 @@ struct Fmt {
         formatter(use24h ? "HH:mm" : "h:mm a").string(from: d)
     }
 
+    /// وقت بدون ص/م للجداول
+    func timeShort(_ d: Date) -> String {
+        formatter(use24h ? "HH:mm" : "h:mm").string(from: d)
+    }
+
+    func custom(_ d: Date, _ pattern: String) -> String {
+        formatter(pattern).string(from: d)
+    }
+
     func digits(_ s: String) -> String {
         guard arabicDigits else { return s }
         let map: [Character: Character] = [

@@ -22,7 +22,7 @@ enum Notifier {
         return (fire, UNNotificationRequest(identifier: id, content: content, trigger: trigger))
     }
 
-    static func reschedule(region: Region, prefs: Prefs, mosque: Mosque) async {
+    static func reschedule(region: Region, prefs: Prefs) async {
         let center = UNUserNotificationCenter.current()
         let st = await center.notificationSettings().authorizationStatus
         guard st == .authorized || st == .provisional else { return }
@@ -66,10 +66,10 @@ enum Notifier {
                 }
 
                 if prefs.notifyIqama && p.hasIqama && !(friday && p == .dhuhr) {
-                    if let iq = mosque.iqamaTime(for: p, adhan: t),
+                    if let iq = Iqama.time(p, adhan: t, list: prefs.iqama),
                        let r = request(id: "iqama-\(tag)",
                                        title: "إقامة صلاة \(name)",
-                                       body: mosque.name,
+                                       body: "حان وقت الإقامة",
                                        fire: iq,
                                        now: now) {
                         items.append(r)

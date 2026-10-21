@@ -17,6 +17,27 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    ForEach(Array(Prayer.fivePrayers.enumerated()), id: \.offset) { idx, p in
+                        Stepper(value: $store.prefs.iqama[idx], in: 0...60) {
+                            HStack {
+                                Text(p.arabicName)
+                                Spacer()
+                                Text("\(store.fmt.number(store.prefs.iqama[idx])) دقيقة")
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                            }
+                        }
+                    }
+                    Button("القيم الافتراضية") {
+                        store.prefs.iqama = Iqama.defaults
+                    }
+                } header: {
+                    Text("الإقامة بعد الأذان")
+                } footer: {
+                    Text("اضبطها حسب مسجدك. تظهر في الصفحة الرئيسية وفي الإشعارات.")
+                }
+
+                Section {
                     Stepper(value: $store.prefs.calc.fajrAngle, in: 14...20, step: 0.5) {
                         HStack {
                             Text("زاوية الفجر")
@@ -37,7 +58,7 @@ struct SettingsView: View {
                         Text("المثل (جمهور)").tag(false)
                         Text("المثلين (حنفي)").tag(true)
                     }
-                    Button("إعادة ضبط طريقة الكويت (١٨° / ١٧٫٥°)") {
+                    Button("إعادة ضبط طريقة الكويت") {
                         store.prefs.calc.fajrAngle = 18
                         store.prefs.calc.ishaAngle = 17.5
                         store.prefs.calc.hanafiAsr = false
@@ -45,7 +66,7 @@ struct SettingsView: View {
                 } header: {
                     Text("طريقة الحساب")
                 } footer: {
-                    Text("الحساب فلكي داخل التطبيق بدون إنترنت. إذا اختلف وقت عن تقويم الأوقاف فعدّله بالدقائق من الأسفل.")
+                    Text("الحساب فلكي داخل التطبيق بدون إنترنت (فجر ١٨° وعشاء ١٧٫٥°). إذا اختلف وقت عن تقويم الأوقاف عدّله بالدقائق من الأسفل.")
                 }
 
                 Section("تعديل الدقائق") {
