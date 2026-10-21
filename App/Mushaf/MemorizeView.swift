@@ -12,9 +12,14 @@ struct MemorizeView: View {
     @State private var hideWords = true
     @State private var finished = false
     @State private var advancing = false
+    @State private var alerted = Set<Int>()
+    @State private var originStart: AyahRef
+    @State private var originCount = 1
+    @State private var advanced = false
 
     init(start: AyahRef) {
         _start = State(initialValue: start)
+        _originStart = State(initialValue: start)
     }
 
     private var surah: Surah? { quran.surah(start.s) }
@@ -75,6 +80,15 @@ struct MemorizeView: View {
         .onChange(of: listener.isListening) { _, on in
             if !on && !listener.heard.isEmpty && !advancing { finished = true }
         }
+        .onChange(of: res.mistakes) { _, _ in
+            guard listener.isListening else { return }
+            var fresh = false
+            for (i, st) in res.states.enumerated() where st == .wrong && !alerted.contains(i) {
+                alerted.insert(i)
+                fresh = true
+            }
+            if fresh { MistakeAlert.shared.fire() }
+        }
         .onChange(of: res.progress) { _, p in
             // أكمل الآية/الآيات المطلوبة: انتقل تلقائياً للتي بعدها واستمر بالاستماع
             guard listener.isListening, !toks.isEmpty, p >= toks.count else { return }
@@ -126,6 +140,7 @@ struct MemorizeView: View {
         guard let s = surah else { return }
         let next = start.a + count
         advancing = true
+        advanced = true
         listener.stop()
         if next > s.ayahs.count {
             // نهاية السورة
@@ -134,6 +149,7 @@ struct MemorizeView: View {
             return
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            alerted = []
             start = AyahRef(s: start.s, a: next)
             count = min(count, max(1, s.ayahs.count - next + 1))
             finished = false
@@ -243,7 +259,17 @@ struct MemorizeView: View {
                 finished = true
             } else {
                 player.stop()
+                if advanced {
+                    // إعادة التسميع ترجع لأول آية بدأت منها
+                    start = originStart
+                    count = originCount
+                    advanced = false
+                } else {
+                    originStart = start
+                    originCount = count
+                }
                 finished = false
+                alerted = []
                 listener.start()
             }
         } label: {

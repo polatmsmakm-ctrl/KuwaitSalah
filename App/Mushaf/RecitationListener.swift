@@ -47,6 +47,7 @@ final class RecitationListener: ObservableObject {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playAndRecord, mode: .measurement, options: [.duckOthers, .defaultToSpeaker])
+            try? audioSession.setAllowHapticsAndSystemSoundsDuringRecording(true)
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
             let req = SFSpeechAudioBufferRecognitionRequest()
             req.shouldReportPartialResults = true
