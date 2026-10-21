@@ -48,6 +48,22 @@ struct TafsirInfo: Identifiable, Hashable {
     let id: Int
     let name: String
     let author: String
+
+    /// اسم عربي للتفسير (المصدر يعطي أسماء إنجليزية لبعضها)
+    var displayName: String {
+        let n = name.lowercased()
+        let map: [(String, String)] = [
+            ("muyassar", "التفسير الميسر"), ("wasit", "التفسير الوسيط (الطنطاوي)"), ("tantawi", "التفسير الوسيط (الطنطاوي)"),
+            ("ibn kathir", "تفسير ابن كثير"), ("tabari", "تفسير الطبري"), ("qurtubi", "تفسير القرطبي"),
+            ("sa'di", "تفسير السعدي"), ("saadi", "تفسير السعدي"), ("sadi", "تفسير السعدي"),
+            ("baghawi", "تفسير البغوي"), ("jalalayn", "تفسير الجلالين"), ("tanwir", "التحرير والتنوير"),
+            ("zamakhshari", "تفسير الزمخشري"), ("razi", "تفسير الرازي"), ("shawkani", "تفسير الشوكاني"),
+            ("nasafi", "تفسير النسفي"), ("baydawi", "تفسير البيضاوي"), ("qushayri", "تفسير القشيري"),
+            ("ibn ashur", "التحرير والتنوير"), ("mawardi", "تفسير الماوردي"), ("suyuti", "الدر المنثور (السيوطي)")
+        ]
+        for (k, v) in map where n.contains(k) { return v }
+        return name
+    }
 }
 
 enum QuranAPIError: Error {

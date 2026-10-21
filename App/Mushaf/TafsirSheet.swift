@@ -12,7 +12,7 @@ struct TafsirSheet: View {
     @State private var failed = false
 
     private var currentName: String {
-        list.first(where: { $0.id == tafsirID })?.name ?? "التفسير"
+        list.first(where: { $0.id == tafsirID })?.displayName ?? "التفسير"
     }
 
     var body: some View {
@@ -49,7 +49,7 @@ struct TafsirSheet: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Picker("التفسير", selection: $tafsirID) {
-                                ForEach(list) { t in Text(t.name).tag(t.id) }
+                                ForEach(list) { t in Text(t.displayName).tag(t.id) }
                             }
                         } label: {
                             Image(systemName: "books.vertical")
