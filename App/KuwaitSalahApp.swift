@@ -11,6 +11,7 @@ struct KuwaitSalahApp: App {
     @StateObject private var wird = WirdStore()
     @StateObject private var memo = MemoStore()
     @StateObject private var offline = OfflineStore()
+    @StateObject private var notes = NotesStore()
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
@@ -25,6 +26,7 @@ struct KuwaitSalahApp: App {
                 .environmentObject(wird)
                 .environmentObject(memo)
                 .environmentObject(offline)
+                .environmentObject(notes)
                 .environment(\.layoutDirection, .rightToLeft)
                 .preferredColorScheme(store.colorScheme)
                 .tint(Theme.accent)

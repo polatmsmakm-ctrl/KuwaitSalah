@@ -119,6 +119,8 @@ struct QuranHomeView: View {
 
     @ViewBuilder
     private var mushafCards: some View {
+        AyahOfDayCard()
+
         NavigationLink(value: MushafTarget(page: mushafLastPage, focus: nil)) {
             HStack(spacing: 12) {
                 Image(systemName: "book.pages.fill")
@@ -152,6 +154,21 @@ struct QuranHomeView: View {
                         .font(.caption)
                         .foregroundStyle(Theme.inkSecondary)
                 }
+                Spacer()
+                Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(14)
+            .glassCard(18)
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+            NotesListView()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "highlighter").font(.title2).foregroundStyle(Theme.accent)
+                Text("ملاحظاتي وتظليلاتي").font(.system(size: 18, weight: .bold))
                 Spacer()
                 Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)
             }
@@ -461,6 +478,8 @@ struct AyahRow: View {
     private let player = RecitationPlayer.shared
     @State private var tafsirRef: AyahRef?
     @State private var memoRef: AyahRef?
+    @State private var noteRef: AyahRef?
+    @EnvironmentObject var notes: NotesStore
 
     var body: some View {
         let fmt = store.fmt
@@ -501,9 +520,15 @@ struct AyahRow: View {
                     } label: {
                         Label("نسخ الآية", systemImage: "doc.on.doc")
                     }
+                    Button {
+                        noteRef = ref
+                    } label: {
+                        Label("تظليل وملاحظة", systemImage: "highlighter")
+                    }
                     ShareLink(item: text) {
                         Label("مشاركة", systemImage: "square.and.arrow.up")
                     }
+                    ShareAyahImageButton(text: text, caption: "\(quran.surah(surah)?.name ?? "") · آية \(fmt.number(number))")
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .foregroundStyle(Theme.inkSecondary)
@@ -526,6 +551,11 @@ struct AyahRow: View {
                 .foregroundStyle(Theme.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .multilineTextAlignment(.leading)
+                .background(notes.color(ref).map { $0.opacity(0.25) } ?? Color.clear)
+
+            if let n = notes.note(ref), !n.text.isEmpty {
+                Label(n.text, systemImage: "note.text").font(.footnote).foregroundStyle(Theme.accent)
+            }
 
             Divider().overlay(Theme.inkSecondary.opacity(0.25))
         }
@@ -534,5 +564,6 @@ struct AyahRow: View {
         .onDisappear(perform: onDisappear)
         .sheet(item: $tafsirRef) { r in TafsirSheet(ref: r) }
         .sheet(item: $memoRef) { r in MemorizeView(start: r) }
+        .sheet(item: $noteRef) { r in NoteSheet(ref: r) }
     }
 }
