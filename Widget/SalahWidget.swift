@@ -71,7 +71,7 @@ struct WidgetNebula: View {
 struct SalahWidgetView: View {
     @Environment(\.widgetFamily) private var family
     let entry: SalahEntry
-    private let fmt = Fmt(use24h: false, arabicDigits: true)
+    private let fmt = Fmt(use24h: false, arabicDigits: false)
 
     private var friday: Bool { PrayerCalc.isFriday(entry.nextDate) }
 
@@ -104,6 +104,7 @@ struct SalahWidgetView: View {
             }
         }
         .environment(\.layoutDirection, .rightToLeft)
+        .environment(\.locale, Locale(identifier: "en_US"))
         .containerBackground(for: .widget) {
             WidgetNebula(name: family == .systemSmall ? "wd_pillar" : "wd_eagle")
         }
