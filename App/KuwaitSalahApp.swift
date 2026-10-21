@@ -8,6 +8,9 @@ struct KuwaitSalahApp: App {
     @StateObject private var hadith = HadithStore()
     @StateObject private var mushaf = MushafModel()
     @StateObject private var player = RecitationPlayer.shared
+    @StateObject private var wird = WirdStore()
+    @StateObject private var memo = MemoStore()
+    @StateObject private var offline = OfflineStore()
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
@@ -19,6 +22,9 @@ struct KuwaitSalahApp: App {
                 .environmentObject(hadith)
                 .environmentObject(mushaf)
                 .environmentObject(player)
+                .environmentObject(wird)
+                .environmentObject(memo)
+                .environmentObject(offline)
                 .environment(\.layoutDirection, .rightToLeft)
                 .preferredColorScheme(store.colorScheme)
                 .tint(Theme.accent)

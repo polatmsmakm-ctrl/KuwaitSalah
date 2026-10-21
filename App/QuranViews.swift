@@ -36,6 +36,7 @@ struct QuranHomeView: View {
     @State private var mode: Int = 0
     @AppStorage("mushaf.lastPage") private var mushafLastPage = 1
     @State private var showMemorize = false
+    @EnvironmentObject var memo: MemoStore
 
     private var filteredSurahs: [Surah] {
         let q = query.trimmingCharacters(in: .whitespaces)
@@ -150,6 +151,51 @@ struct QuranHomeView: View {
                     Text("اقرأ بصوتك والتطبيق يكشف الأخطاء")
                         .font(.caption)
                         .foregroundStyle(Theme.inkSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(14)
+            .glassCard(18)
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+            WirdView()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "target")
+                    .font(.title2)
+                    .foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("الختمة والورد").font(.system(size: 18, weight: .bold))
+                    Text("هدف يومي · متابعة التقدم · تذكير")
+                        .font(.caption)
+                        .foregroundStyle(Theme.inkSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(14)
+            .glassCard(18)
+        }
+        .buttonStyle(.plain)
+
+        NavigationLink {
+            MemoHubView()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.title2)
+                    .foregroundStyle(Theme.accent)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("مراجعة المحفوظ").font(.system(size: 18, weight: .bold))
+                    Text(memo.dueItems.isEmpty ? "مراجعة متباعدة · إحصائيات · كلمات ضعيفة"
+                                               : "عندك \(store.fmt.number(memo.dueItems.count)) للمراجعة الآن")
+                        .font(.caption)
+                        .foregroundStyle(memo.dueItems.isEmpty ? Theme.inkSecondary : Color.orange)
                 }
                 Spacer()
                 Image(systemName: "chevron.left").foregroundStyle(Theme.inkSecondary)

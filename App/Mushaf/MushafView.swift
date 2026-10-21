@@ -51,6 +51,7 @@ struct MushafView: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var model: MushafModel
     @EnvironmentObject var player: RecitationPlayer
+    @EnvironmentObject var wird: WirdStore
     @AppStorage("mushaf.lastPage") private var lastPage = 1
     @State private var page: Int
     @State private var selected: AyahRef?
@@ -97,6 +98,12 @@ struct MushafView: View {
             }
         }
         .onAppear { preload(page) }
+        .task(id: page) {
+            // الصفحة تُحسب مقروءة إذا بقيت فيها ٤ ثوانٍ
+            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            if Task.isCancelled { return }
+            wird.visit(page)
+        }
         .onChange(of: page) { _, n in
             lastPage = n
             preload(n)

@@ -102,7 +102,8 @@ enum QuranAPI {
     }
 
     private static var cacheDir: URL {
-        let d = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0].appendingPathComponent("mushaf", isDirectory: true)
+        // مجلد دائم (لا يمسحه النظام) كي تبقى الصفحات والتفاسير والتوقيتات للاستخدام بدون إنترنت
+        let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("mushaf", isDirectory: true)
         try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
         return d
     }
@@ -190,8 +191,21 @@ enum QuranAPI {
     // MARK: الصوت
 
     static func chapterAudio(reciter: Int, chapter: Int) async throws -> ChapterAudio {
+        // التوقيتات لا تتغير: نقرأها من القرص أولاً حتى يعمل التشغيل بدون إنترنت
+        let file = cacheDir.appendingPathComponent("audio-\(reciter)-\(chapter).json")
+        if let data = try? Data(contentsOf: file), let a = try? parseChapterAudio(data, chapter: chapter), !a.verses.isEmpty {
+            return a
+        }
         let data = try await get("chapter_recitations/\(reciter)/\(chapter)?segments=true")
-        return try parseChapterAudio(data, chapter: chapter)
+        let parsed = try parseChapterAudio(data, chapter: chapter)
+        if !parsed.verses.isEmpty { try? data.write(to: file, options: .atomic) }
+        return parsed
+    }
+
+    /// عدد صفحات المصحف المحفوظة على الجهاز
+    static func cachedPageCount() -> Int {
+        let files = (try? FileManager.default.contentsOfDirectory(atPath: cacheDir.path)) ?? []
+        return files.filter { $0.hasPrefix("page-") && $0.hasSuffix(".json") }.count
     }
 
     static func parseChapterAudio(_ data: Data, chapter: Int) throws -> ChapterAudio {

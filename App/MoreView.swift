@@ -8,6 +8,7 @@ struct MoreView: View {
                 ScrollView {
                     VStack(spacing: 10) {
                         row("الأحاديث: البخاري ومسلم", "text.book.closed.fill") { HadithHomeView() }
+                        row("بدون إنترنت: تنزيل المصحف والصوت", "arrow.down.circle.fill") { OfflineView() }
                         row("الجدول الشهري", "calendar") { TimetableView() }
                         row("الإحصائيات", "chart.bar.fill") { StatsView() }
                         row("الإعدادات", "gearshape.fill") { SettingsView() }

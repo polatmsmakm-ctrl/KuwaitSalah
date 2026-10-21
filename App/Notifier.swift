@@ -27,7 +27,10 @@ enum Notifier {
         let st = await center.notificationSettings().authorizationStatus
         guard st == .authorized || st == .provisional else { return }
 
-        center.removeAllPendingNotificationRequests()
+        // نحذف إشعارات الصلاة فقط (لا نمس تذكير الورد وغيره)
+        let pending = await center.pendingNotificationRequests()
+        let mine = pending.map { $0.identifier }.filter { $0.hasPrefix("adhan-") || $0.hasPrefix("pre-") || $0.hasPrefix("iqama-") }
+        center.removePendingNotificationRequests(withIdentifiers: mine)
 
         let now = Date()
         var items: [(Date, UNNotificationRequest)] = []

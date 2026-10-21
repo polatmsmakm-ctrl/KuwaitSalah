@@ -6,6 +6,7 @@ struct MemorizeView: View {
     @EnvironmentObject var quran: QuranStore
     @EnvironmentObject var store: Store
     @EnvironmentObject var player: RecitationPlayer
+    @EnvironmentObject var memo: MemoStore
     @Environment(\.dismiss) private var dismiss
     @StateObject private var listener = RecitationListener()
     @State private var count = 1
@@ -23,9 +24,12 @@ struct MemorizeView: View {
     @State private var originCount = 1
     @State private var advanced = false
 
-    init(start: AyahRef) {
+    init(start: AyahRef, count: Int = 1) {
+        let c = max(1, min(10, count))
         _start = State(initialValue: start)
         _originStart = State(initialValue: start)
+        _count = State(initialValue: c)
+        _originCount = State(initialValue: c)
     }
 
     private var surah: Surah? { quran.surah(start.s) }
@@ -103,7 +107,7 @@ struct MemorizeView: View {
         .onChange(of: res.progress) { _, p in
             // أكمل الآية/الآيات المطلوبة: انتقل تلقائياً للتي بعدها واستمر بالاستماع
             guard listener.isListening, !toks.isEmpty, p >= toks.count else { return }
-            advanceToNext(retry: listenFirst && res.mistakes > 0)
+            advanceToNext(retry: listenFirst && res.mistakes > 0, result: res, toks: toks)
         }
         .onChange(of: player.error) { _, e in
             // تعذّر تشغيل الشيخ: ندخل دورك مباشرة
@@ -160,8 +164,15 @@ struct MemorizeView: View {
     }
 
     /// ينتقل للآيات التالية ويعيد الاستماع (الجلسة الصوتية من أبل تُقطع بعد وقت قصير، فنبدأ جلسة جديدة لكل آية)
-    private func advanceToNext(retry: Bool) {
+    private func advanceToNext(retry: Bool, result: AlignResult, toks: [String]) {
         guard let s = surah else { return }
+        // تسجيل النتيجة للمراجعة المتباعدة والإحصائيات
+        var wrong: [String] = []
+        for (i, st) in result.states.enumerated() where (st == .wrong || st == .missed) && i < toks.count {
+            wrong.append(toks[i])
+        }
+        memo.record(surah: start.s, from: start.a, to: min(s.ayahs.count, start.a + count - 1),
+                    mistakes: result.mistakes, wrongWords: wrong)
         let next = start.a + count
         advancing = true
         listener.stop()

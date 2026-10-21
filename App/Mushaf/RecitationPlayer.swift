@@ -36,6 +36,7 @@ final class RecitationPlayer: ObservableObject {
     private var chapter = 0
     private var generation = 0
     private var lastRequested: AyahRef?
+    private var currentReciter = 0
     private var stopAfter: Int?
     private var onFinish: (() -> Void)?
 
@@ -66,6 +67,7 @@ final class RecitationPlayer: ObservableObject {
         loading = true
         error = nil
         let reciter = reciterID
+        currentReciter = reciter
         Task {
             do {
                 let audio = try await QuranAPI.chapterAudio(reciter: reciter, chapter: surah)
@@ -88,7 +90,8 @@ final class RecitationPlayer: ObservableObject {
 
     private func start(audio: ChapterAudio, ayah: Int, gen: Int) {
         self.audio = audio
-        let item = AVPlayerItem(url: audio.url)
+        // الملف المنزَّل (إن وُجد) أولى من الشبكة
+        let item = AVPlayerItem(url: OfflineAudio.localURL(reciter: currentReciter, chapter: chapter) ?? audio.url)
         let p = AVPlayer(playerItem: item)
         player = p
         let startMs = audio.verses.first(where: { $0.ayah == ayah })?.from ?? 0
