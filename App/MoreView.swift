@@ -7,6 +7,7 @@ struct MoreView: View {
                 AppBackground()
                 ScrollView {
                     VStack(spacing: 10) {
+                        row("الأحاديث: البخاري ومسلم", "text.book.closed.fill") { HadithHomeView() }
                         row("الجدول الشهري", "calendar") { TimetableView() }
                         row("الإحصائيات", "chart.bar.fill") { StatsView() }
                         row("الإعدادات", "gearshape.fill") { SettingsView() }

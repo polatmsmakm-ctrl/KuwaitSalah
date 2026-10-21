@@ -5,6 +5,7 @@ struct KuwaitSalahApp: App {
     @StateObject private var store = Store()
     @StateObject private var quran = QuranStore()
     @StateObject private var adhkar = AdhkarStore()
+    @StateObject private var hadith = HadithStore()
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
@@ -13,6 +14,7 @@ struct KuwaitSalahApp: App {
                 .environmentObject(store)
                 .environmentObject(quran)
                 .environmentObject(adhkar)
+                .environmentObject(hadith)
                 .environment(\.layoutDirection, .rightToLeft)
                 .preferredColorScheme(store.colorScheme)
                 .tint(Theme.accent)

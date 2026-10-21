@@ -110,3 +110,26 @@ final class QuranTests: XCTestCase {
         XCTAssertEqual(QuranText.searchKey("ٱلْعَٰلَمِينَ"), QuranText.searchKey("العالمين"))
     }
 }
+
+final class HadithTests: XCTestCase {
+    func testBooksLoadWithExpectedCountsAndContiguousNumbers() throws {
+        let expected = [7277, 7459]
+        for i in 0..<2 {
+            let b = try XCTUnwrap(HadithLoader.load(index: i, bundle: Bundle.main))
+            XCTAssertEqual(b.items.count, expected[i])
+            for (k, h) in b.items.enumerated() {
+                XCTAssertEqual(h.number, k + 1)
+                XCTAssertFalse(h.text.isEmpty)
+                XCTAssertTrue(h.chapter >= 0 && h.chapter < b.chapters.count)
+            }
+            XCTAssertEqual(b.ranges.reduce(0) { $0 + $1.count }, b.items.count)
+        }
+    }
+
+    func testSearchFindsIntentionsHadith() throws {
+        let b = try XCTUnwrap(HadithLoader.load(index: 0, bundle: Bundle.main))
+        let keys = b.items.map { QuranText.searchKey($0.text) }
+        let hits = HadithLoader.search("إنما الأعمال بالنيات", keys: keys, limit: 20)
+        XCTAssertTrue(hits.contains(0), "hadith 1 should match")
+    }
+}
