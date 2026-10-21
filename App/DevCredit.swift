@@ -8,9 +8,9 @@ struct DevCredit: View {
 
     var body: some View {
         VStack(spacing: 2) {
-            Text("تطوير")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.55))
+            Text("إعداد وتطوير")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color(red: 1.0, green: 0.87, blue: 0.5).opacity(0.85))
             TimelineView(.animation) { ctx in
                 let t = ctx.date.timeIntervalSinceReferenceDate
                 let phase = (t.truncatingRemainder(dividingBy: 2.6)) / 2.6   // 0...1
@@ -33,9 +33,9 @@ struct DevCredit: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 22)
-        .padding(.bottom, 90)
+        .padding(.bottom, 96)
         .environment(\.layoutDirection, .rightToLeft)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("تطوير راشد الشمِّري")
+        .accessibilityLabel("إعداد وتطوير راشد الشمِّري")
     }
 }

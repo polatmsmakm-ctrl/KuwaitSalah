@@ -11,10 +11,14 @@ struct MoreView: View {
                         row("الجدول الشهري", "calendar") { TimetableView() }
                         row("الإحصائيات", "chart.bar.fill") { StatsView() }
                         row("الإعدادات", "gearshape.fill") { SettingsView() }
-                        DevCredit()
                     }
                     .padding(16)
                 }
+                VStack {
+                    Spacer()
+                    DevCredit()
+                }
+                .allowsHitTesting(false)
             }
             .navigationTitle("المزيد")
             .navigationBarTitleDisplayMode(.inline)
