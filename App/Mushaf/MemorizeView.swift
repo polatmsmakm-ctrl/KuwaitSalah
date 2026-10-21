@@ -12,6 +12,10 @@ struct MemorizeView: View {
     @AppStorage("memorize.hideWords") private var hideWords = true
     @State private var finished = false
     @State private var advancing = false
+    @AppStorage("memorize.listenFirst") private var listenFirst = false
+    private enum Phase { case idle, sheikh, you }
+    @State private var phase: Phase = .idle
+    @State private var note: String?
     @State private var alerted = Set<Int>()
     @State private var originStart: AyahRef
     @State private var originCount = 1
@@ -92,9 +96,16 @@ struct MemorizeView: View {
         .onChange(of: res.progress) { _, p in
             // أكمل الآية/الآيات المطلوبة: انتقل تلقائياً للتي بعدها واستمر بالاستماع
             guard listener.isListening, !toks.isEmpty, p >= toks.count else { return }
-            advanceToNext()
+            advanceToNext(retry: listenFirst && res.mistakes > 0)
         }
-        .onDisappear { listener.stop() }
+        .onChange(of: player.error) { _, e in
+            // تعذّر تشغيل الشيخ: ندخل دورك مباشرة
+            if e != nil && phase == .sheikh {
+                phase = .you
+                listener.start()
+            }
+        }
+        .onDisappear { listener.stop(); player.stop() }
     }
 
     private var controls: some View {
@@ -115,6 +126,9 @@ struct MemorizeView: View {
                 Text("مع رؤية الآية").tag(false)
             }
             .pickerStyle(.segmented)
+            Toggle("الشيخ يقرأ أولاً ثم أقرأ بعده", isOn: $listenFirst)
+                .foregroundStyle(Theme.ink)
+                .disabled(listener.isListening || phase == .sheikh)
             HStack(spacing: 10) {
                 Button {
                     player.play(surah: start.s, ayah: start.a)
@@ -139,25 +153,52 @@ struct MemorizeView: View {
     }
 
     /// ينتقل للآيات التالية ويعيد الاستماع (الجلسة الصوتية من أبل تُقطع بعد وقت قصير، فنبدأ جلسة جديدة لكل آية)
-    private func advanceToNext() {
+    private func advanceToNext(retry: Bool) {
         guard let s = surah else { return }
         let next = start.a + count
         advancing = true
-        advanced = true
         listener.stop()
-        if next > s.ayahs.count {
-            // نهاية السورة
-            advancing = false
-            finished = true
+        if retry {
+            // فيه أخطاء: يظهر الخطأ لحظة، ثم يعيد الشيخ القراءة وتعيد أنت
+            note = "فيه أخطاء، استمع للشيخ وأعد القراءة"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                advancing = false
+                beginRound()
+            }
             return
         }
+        if next > s.ayahs.count {
+            advancing = false
+            finished = true
+            phase = .idle
+            return
+        }
+        advanced = true
+        note = nil
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             alerted = []
             start = AyahRef(s: start.s, a: next)
             count = min(count, max(1, s.ayahs.count - next + 1))
-            finished = false
-            listener.start()
             advancing = false
+            beginRound()
+        }
+    }
+
+    /// جولة واحدة: (اختيارياً) الشيخ يقرأ أولاً ثم يبدأ الاستماع لك
+    private func beginRound() {
+        guard let s = surah else { return }
+        alerted = []
+        finished = false
+        if listenFirst {
+            phase = .sheikh
+            let last = min(s.ayahs.count, start.a + count - 1)
+            player.playRange(surah: start.s, from: start.a, through: last) {
+                phase = .you
+                listener.start()
+            }
+        } else {
+            phase = .you
+            listener.start()
         }
     }
 
@@ -168,7 +209,7 @@ struct MemorizeView: View {
 
     @ViewBuilder
     private func wordsCard(_ toks: [String], _ res: AlignResult) -> some View {
-        FlowLayout(spacing: 10, lineSpacing: 14, rtl: false) {
+        FlowLayout(spacing: 10, lineSpacing: 14, rtl: true) {
             ForEach(Array(toks.enumerated()), id: \.offset) { i, w in
                 chip(w, state: i < res.states.count ? res.states[i] : .pending)
             }
@@ -176,7 +217,7 @@ struct MemorizeView: View {
         .padding(16)
         .frame(maxWidth: .infinity)
         .glassCard(20)
-        .environment(\.layoutDirection, .rightToLeft)
+        .environment(\.layoutDirection, .leftToRight)
     }
 
     @ViewBuilder
@@ -256,37 +297,53 @@ struct MemorizeView: View {
     }
 
     private var micButton: some View {
-        Button {
-            if listener.isListening {
-                listener.stop()
-                finished = true
-            } else {
-                player.stop()
-                if advanced {
-                    // إعادة التسميع ترجع لأول آية بدأت منها
-                    start = originStart
-                    count = originCount
-                    advanced = false
+        let active = listener.isListening || phase == .sheikh
+        return VStack(spacing: 8) {
+            if phase == .sheikh {
+                Label("الشيخ يقرأ… اسمع ثم اقرأ بعده", systemImage: "ear.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.accent)
+            } else if let n = note, listener.isListening || advancing {
+                Text(n).font(.subheadline.weight(.semibold)).foregroundStyle(Color.orange)
+            } else if phase == .you && listener.isListening && listenFirst {
+                Label("دورك: اقرأ الآن", systemImage: "mic.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color(red: 0.25, green: 0.75, blue: 0.42))
+            }
+            Button {
+                if active {
+                    player.stop()
+                    listener.stop()
+                    phase = .idle
+                    note = nil
+                    finished = !listener.heard.isEmpty
                 } else {
-                    originStart = start
-                    originCount = count
+                    player.stop()
+                    if advanced {
+                        // إعادة التسميع ترجع لأول آية بدأت منها
+                        start = originStart
+                        count = originCount
+                        advanced = false
+                    } else {
+                        originStart = start
+                        originCount = count
+                    }
+                    note = nil
+                    beginRound()
                 }
-                finished = false
-                alerted = []
-                listener.start()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: active ? "stop.circle.fill" : "mic.circle.fill")
+                        .font(.system(size: 30))
+                    Text(active ? "إنهاء التسميع" : (finished ? "إعادة التسميع" : "ابدأ التسميع"))
+                        .font(.system(size: 18, weight: .bold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(active ? Color.red : Theme.emerald, in: Capsule())
             }
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: listener.isListening ? "stop.circle.fill" : "mic.circle.fill")
-                    .font(.system(size: 30))
-                Text(listener.isListening ? "إنهاء التسميع" : (finished ? "إعادة التسميع" : "ابدأ التسميع"))
-                    .font(.system(size: 18, weight: .bold))
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .background(listener.isListening ? Color.red : Theme.emerald, in: Capsule())
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
     }
 }

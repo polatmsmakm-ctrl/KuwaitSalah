@@ -36,6 +36,8 @@ final class RecitationPlayer: ObservableObject {
     private var chapter = 0
     private var generation = 0
     private var lastRequested: AyahRef?
+    private var stopAfter: Int?
+    private var onFinish: (() -> Void)?
 
     init() {
         let saved = UserDefaults.standard.integer(forKey: "mushaf.reciter")
@@ -78,6 +80,7 @@ final class RecitationPlayer: ObservableObject {
                     guard gen == self.generation else { return }
                     self.loading = false
                     self.error = "تعذّر تحميل التلاوة. تأكد من الإنترنت وحاول مرة ثانية."
+                    self.onFinish = nil
                 }
             }
         }
@@ -95,6 +98,7 @@ final class RecitationPlayer: ObservableObject {
         }
         endObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main) { [weak self] _ in
             guard let self = self else { return }
+            if self.onFinish != nil { self.finishRange(); return }
             if self.chapter < 114 {
                 self.play(surah: self.chapter + 1, ayah: 1)
             } else {
@@ -116,6 +120,19 @@ final class RecitationPlayer: ObservableObject {
         }
     }
 
+    /// يقرأ الشيخ من آية إلى آية ثم يتوقف ويستدعي completion (لوضع: الشيخ يقرأ ثم أقرأ بعده)
+    func playRange(surah: Int, from: Int, through: Int, completion: @escaping () -> Void) {
+        play(surah: surah, ayah: from)
+        stopAfter = through
+        onFinish = completion
+    }
+
+    private func finishRange() {
+        let cb = onFinish
+        stop()
+        cb?()
+    }
+
     func toggle() {
         guard let p = player else { return }
         if isPlaying { p.pause(); isPlaying = false } else { p.play(); isPlaying = true }
@@ -130,6 +147,8 @@ final class RecitationPlayer: ObservableObject {
         player?.pause()
         player = nil
         audio = nil
+        stopAfter = nil
+        onFinish = nil
         isPlaying = false
         loading = false
         currentWord = nil
@@ -138,6 +157,10 @@ final class RecitationPlayer: ObservableObject {
 
     private func tick(_ ms: Double) {
         guard let audio = audio else { return }
+        if let last = stopAfter, let end = audio.verses.first(where: { $0.ayah == last })?.to, ms >= end {
+            finishRange()
+            return
+        }
         guard let v = audio.verses.last(where: { $0.from <= ms }) else { return }
         let ref = AyahRef(s: v.surah, a: v.ayah)
         if currentAyah != ref { currentAyah = ref }
