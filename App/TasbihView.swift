@@ -19,7 +19,7 @@ struct TasbihView: View {
         let beadSize: CGFloat = n > 40 ? 5 : 10
 
         ZStack {
-            AppBackground()
+            AppBackground(kind: .adhkar)
             VStack(spacing: 22) {
                 Menu {
                     ForEach(0..<phrases.count, id: \.self) { i in

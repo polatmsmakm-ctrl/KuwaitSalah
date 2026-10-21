@@ -19,7 +19,7 @@ struct HadithHomeView: View {
 
     var body: some View {
         ZStack {
-            AppBackground()
+            AppBackground(kind: .quran)
             if hadith.failed {
                 VStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle").font(.largeTitle)
@@ -162,7 +162,7 @@ struct HadithChapterView: View {
 
     var body: some View {
         ZStack {
-            AppBackground()
+            AppBackground(kind: .quran)
             if let book = hadith.books[target.book] {
                 if target.chapter < 0 {
                     chapterList(book)
@@ -229,7 +229,7 @@ struct HadithDetailView: View {
     var body: some View {
         let fav = hadith.isFavorite(item)
         ZStack {
-            AppBackground()
+            AppBackground(kind: .quran)
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("\(HadithStore.bookNames[item.book]) · حديث \(store.fmt.number(item.number))")

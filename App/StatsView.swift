@@ -28,7 +28,7 @@ struct StatsView: View {
     var body: some View {
         let fmt = store.fmt
         ZStack {
-            AppBackground()
+            AppBackground(kind: .more)
             ScrollView {
                 VStack(spacing: 14) {
                     if !store.prefs.statsEnabled {

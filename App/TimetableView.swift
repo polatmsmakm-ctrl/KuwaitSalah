@@ -20,7 +20,7 @@ struct TimetableView: View {
         let title = days.first.map { fmt.custom($0, "MMMM yyyy") } ?? ""
 
         ZStack {
-            AppBackground()
+            AppBackground(kind: .more)
             VStack(spacing: 10) {
                 HStack {
                     Button {

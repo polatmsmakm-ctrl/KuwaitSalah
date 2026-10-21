@@ -49,7 +49,7 @@ struct QuranHomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppBackground()
+                AppBackground(kind: .quran)
                 content
             }
             .navigationTitle("القرآن الكريم")
@@ -244,7 +244,7 @@ struct SurahReaderView: View {
             reader(s)
         } else {
             ZStack {
-                AppBackground()
+                AppBackground(kind: .quran)
                 ProgressView().tint(Theme.accent)
             }
         }
@@ -254,7 +254,7 @@ struct SurahReaderView: View {
         let fmt = store.fmt
         let total = s.ayahs.count
         return ZStack {
-            AppBackground()
+            AppBackground(kind: .quran)
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 0) {

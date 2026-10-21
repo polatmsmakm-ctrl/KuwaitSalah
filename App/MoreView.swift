@@ -4,7 +4,7 @@ struct MoreView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppBackground()
+                AppBackground(kind: .more)
                 ScrollView {
                     VStack(spacing: 10) {
                         row("الأحاديث: البخاري ومسلم", "text.book.closed.fill") { HadithHomeView() }
@@ -51,7 +51,7 @@ struct AdhkarTab: View {
             .pickerStyle(.segmented)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(AppBackground())
+            .background(AppBackground(kind: .more))
             if store.adhkarMode == 0 {
                 AdhkarListView()
             } else {

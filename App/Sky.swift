@@ -1,74 +1,46 @@
 import SwiftUI
+import UIKit
 
-private func fracPart(_ v: Double) -> Double { v - floor(v) }
-
-/// نجوم تلمع بهدوء
-struct StarField: View {
-    var intensity: Double
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        TimelineView(.animation(minimumInterval: reduceMotion ? 3600.0 : 1.0 / 12.0)) { ctx in
-            Canvas { gc, size in
-                let t = ctx.date.timeIntervalSinceReferenceDate
-                for i in 0..<80 {
-                    let seed = Double(i)
-                    let x = fracPart(sin(seed * 12.9898) * 43758.5453) * size.width
-                    let y = fracPart(sin(seed * 78.233) * 12543.1234) * size.height * 0.75
-                    let tw = 0.5 + 0.5 * sin(t * (0.7 + fracPart(seed * 0.37)) + seed)
-                    let r = 0.8 + fracPart(seed * 0.91) * 1.7
-                    gc.opacity = intensity * (0.2 + 0.8 * tw)
-                    gc.fill(Path(ellipseIn: CGRect(x: x, y: y, width: r, height: r)), with: .color(.white))
-                }
-            }
-        }
-        .allowsHitTesting(false)
-    }
-}
-
-/// خلفية السماء حسب وقت اليوم
-struct SkyBackground: View {
-    let now: Date
-    let today: DayTimes
-
-    var body: some View {
-        ZStack {
-            Theme.gradient(now: now, today: today)
-            Circle()
-                .fill(Theme.gold.opacity(0.14))
-                .frame(width: 300, height: 300)
-                .blur(radius: 70)
-                .offset(x: 110, y: -260)
-            StarField(intensity: Theme.starIntensity(now: now, today: today))
-        }
-        .ignoresSafeArea()
-        .animation(.easeInOut(duration: 1.0), value: Theme.starIntensity(now: now, today: today))
-    }
-}
-
-/// خلفية الشاشات الأخرى: ليل زمردي بنجوم في الداكن، وعاجي دافئ في الفاتح
+/// خلفيات الفضاء: صورة لكل قسم مع طبقة تعتيم لوضوح النص
 struct AppBackground: View {
-    @Environment(\.colorScheme) private var scheme
+    enum Kind {
+        case home, quran, adhkar, qibla, more
+
+        var file: String {
+            switch self {
+            case .home: return "bg_pillar"
+            case .quran: return "bg_eagle"
+            case .adhkar: return "bg_milkyway"
+            case .qibla: return "bg_jwst"
+            case .more: return "bg_milkyway"
+            }
+        }
+    }
+
+    var kind: Kind = .more
+    var dim: Double = 0.45
+
+    private static var cache: [String: UIImage] = [:]
+
+    private var image: UIImage? {
+        if let c = Self.cache[kind.file] { return c }
+        guard let p = Bundle.main.path(forResource: kind.file, ofType: "jpg"),
+              let img = UIImage(contentsOfFile: p) else { return nil }
+        Self.cache[kind.file] = img
+        return img
+    }
 
     var body: some View {
         ZStack {
-            if scheme == .dark {
-                LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
-                Circle()
-                    .fill(Theme.gold.opacity(0.10))
-                    .frame(width: 280, height: 280)
-                    .blur(radius: 70)
-                    .offset(x: -110, y: -280)
-                StarField(intensity: 1.0)
-            } else {
-                LinearGradient(colors: [Theme.ivory, Color(red: 0.89, green: 0.95, blue: 0.90)],
-                               startPoint: .top, endPoint: .bottom)
-                Circle()
-                    .fill(Theme.gold.opacity(0.25))
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 80)
-                    .offset(x: 120, y: -280)
+            LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
+            if let img = image {
+                Image(uiImage: img)
+                    .resizable()
+                    .scaledToFill()
+                    .accessibilityHidden(true)
             }
+            LinearGradient(colors: [Color.black.opacity(dim + 0.1), Color.black.opacity(dim)],
+                           startPoint: .top, endPoint: .bottom)
         }
         .ignoresSafeArea()
     }

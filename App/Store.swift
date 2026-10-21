@@ -111,11 +111,8 @@ final class Store: ObservableObject {
     }
 
     var colorScheme: ColorScheme? {
-        switch prefs.appearance {
-        case 1: return .light
-        case 2: return .dark
-        default: return nil
-        }
+        // الخلفيات فضائية داكنة، فالتطبيق داكن دائماً
+        return .dark
     }
 
     // MARK: - تعليم الصلوات

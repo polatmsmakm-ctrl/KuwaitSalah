@@ -60,7 +60,7 @@ struct QiblaView: View {
         let aligned = hp.gotReading && abs(diff) < 3
 
         ZStack {
-            AppBackground()
+            AppBackground(kind: .qibla)
             VStack(spacing: 26) {
                 Text("اتجاه القبلة")
                     .font(.system(size: 30, weight: .bold))

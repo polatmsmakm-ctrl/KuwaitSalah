@@ -98,11 +98,6 @@ struct SettingsView: View {
                 }
 
                 Section("العرض") {
-                    Picker("المظهر", selection: $store.prefs.appearance) {
-                        Text("تلقائي").tag(0)
-                        Text("فاتح").tag(1)
-                        Text("داكن").tag(2)
-                    }
                     Toggle("تتبع الصلوات والإحصائيات", isOn: $store.prefs.statsEnabled)
                     Toggle("نظام ٢٤ ساعة", isOn: $store.prefs.use24h)
                     Toggle("أرقام عربية (٠١٢٣)", isOn: $store.prefs.arabicDigits)
@@ -150,7 +145,7 @@ struct SettingsView: View {
                 }
             }
         .scrollContentBackground(.hidden)
-        .background(AppBackground())
+        .background(AppBackground(kind: .more))
         .navigationTitle("الإعدادات")
         .navigationBarTitleDisplayMode(.inline)
         .task {

@@ -158,7 +158,7 @@ struct AdhkarListView: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 24)
             }
-            .background(AppBackground())
+            .background(AppBackground(kind: .adhkar))
             .navigationDestination(for: String.self) { id in
                 if let cat = AdhkarData.all.first(where: { $0.id == id }) {
                     AdhkarCategoryView(category: cat)
@@ -222,7 +222,7 @@ struct AdhkarCategoryView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
         }
-        .background(AppBackground())
+        .background(AppBackground(kind: .adhkar))
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

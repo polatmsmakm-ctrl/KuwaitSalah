@@ -51,7 +51,7 @@ struct HomeContent: View {
         let arc = arcInfo(today: today, fmt: fmt)
 
         ZStack {
-            SkyBackground(now: now, today: today)
+            AppBackground(kind: .home, dim: 0.5)
             ScrollView {
                 VStack(spacing: 16) {
                     HeaderView(now: now, regionName: region.name)
