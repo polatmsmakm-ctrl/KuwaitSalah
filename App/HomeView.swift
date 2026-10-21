@@ -57,6 +57,7 @@ struct HomeContent: View {
                     HeaderView(now: now, regionName: region.name)
                     SkyArc(progress: arc.progress, isDay: arc.isDay, leftLabel: arc.left, rightLabel: arc.right)
                     HeroView(now: now, nxt: nxt, prv: prv)
+                    ShortcutsRow()
                     PrayerListView(now: now, today: today, nxt: nxt)
                     DhikrCard(now: now)
                 }
@@ -236,7 +237,9 @@ struct PrayerListView: View {
                     iqama: iq,
                     passed: adhan <= now,
                     isNext: p == nxt.prayer && PrayerCalc.calendar.isDate(nxt.date, inSameDayAs: adhan),
-                    small: p == .sunrise
+                    small: p == .sunrise,
+                    checked: (store.prefs.statsEnabled && p != .sunrise) ? store.isPrayed(now, p) : nil,
+                    onCheck: { store.togglePrayed(now, p) }
                 )
             }
         }
@@ -251,6 +254,8 @@ struct PrayerRow: View {
     let passed: Bool
     let isNext: Bool
     let small: Bool
+    var checked: Bool? = nil
+    var onCheck: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 12) {
@@ -276,14 +281,24 @@ struct PrayerRow: View {
                         .monospacedDigit()
                 }
             }
-            if passed {
+            if let c = checked {
+                Button(action: onCheck) {
+                    Image(systemName: c ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(c ? Color.green : Color.white.opacity(0.7))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(c ? "تم أداء \(name)، اضغط للإلغاء" : "علّم \(name) كمؤداة")
+            } else if passed {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(Color.green.opacity(0.85))
+                    .accessibilityHidden(true)
             }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, small ? 8 : 11)
-        .opacity(passed ? 0.6 : 1.0)
+        .opacity(passed && checked != true ? 0.6 : 1.0)
+        .accessibilityElement(children: .contain)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(isNext ? AnyShapeStyle(LinearGradient(colors: [Theme.gold.opacity(0.35), Color.orange.opacity(0.18)],
@@ -324,5 +339,33 @@ struct DhikrCard: View {
         .frame(maxWidth: .infinity)
         .padding(18)
         .glassCard()
+    }
+}
+
+/// اختصارات سريعة للصفحات المهمة
+struct ShortcutsRow: View {
+    @EnvironmentObject var store: Store
+    @EnvironmentObject var quran: QuranStore
+
+    var body: some View {
+        HStack(spacing: 10) {
+            item("القرآن", quran.lastRead != nil ? "bookmark.fill" : "book.fill") { store.selectedTab = 1 }
+            item("الأذكار", "sparkles") { store.adhkarMode = 0; store.selectedTab = 2 }
+            item("المسبحة", "circle.hexagongrid.fill") { store.adhkarMode = 1; store.selectedTab = 2 }
+            item("القبلة", "location.north.fill") { store.selectedTab = 3 }
+        }
+    }
+
+    private func item(_ title: String, _ symbol: String, _ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(systemName: symbol).font(.title3).foregroundStyle(Theme.gold)
+                Text(title).font(.caption.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .glassCard(18)
+        }
+        .buttonStyle(PressStyle())
     }
 }

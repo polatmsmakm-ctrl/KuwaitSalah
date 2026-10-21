@@ -60,3 +60,25 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.rashid.kuwaitsalah.widget
         TARGETED_DEVICE_FAMILY: "1"
         SKIP_INSTALL: "YES"
+
+  KuwaitSalahTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests/KuwaitSalahTests
+    dependencies:
+      - target: KuwaitSalah
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rashid.kuwaitsalah.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  KuwaitSalah:
+    build:
+      targets:
+        KuwaitSalah: all
+        SalahWidget: all
+    test:
+      targets:
+        - KuwaitSalahTests

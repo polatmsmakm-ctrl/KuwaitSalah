@@ -60,7 +60,7 @@ struct QiblaView: View {
         let aligned = hp.gotReading && abs(diff) < 3
 
         ZStack {
-            NightBackground()
+            AppBackground()
             VStack(spacing: 26) {
                 Text("اتجاه القبلة")
                     .font(.system(size: 30, weight: .bold))
@@ -71,6 +71,12 @@ struct QiblaView: View {
                 VStack(spacing: 8) {
                     if !hp.available {
                         Text("البوصلة غير متوفرة على هذا الجهاز")
+                            .font(.title3.weight(.semibold))
+                        Text("اتجاه القبلة المحسوب \(fmt.number(Int(bearing.rounded())))° من الشمال؛ استخدم بوصلة خارجية أو ابحث عن الشمال.")
+                            .font(.caption)
+                            .foregroundStyle(Theme.inkSecondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 30)
                     } else if !hp.gotReading {
                         Text("جارٍ قراءة البوصلة…")
                     } else if aligned {
@@ -81,7 +87,7 @@ struct QiblaView: View {
                         Text(diff > 0 ? "أدر الجهاز لليمين" : "أدر الجهاز لليسار")
                             .font(.title3.weight(.semibold))
                     }
-                    Text("القبلة \(fmt.number(Int(bearing.rounded())))° من الشمال")
+                    Text("القبلة \(fmt.number(Int(bearing.rounded())))° من الشمال · محسوبة لـ\(store.region.name)")
                         .font(.footnote)
                         .opacity(0.7)
                     Text("ابعد الجهاز عن المعادن والمغناطيس، وحرّكه على شكل ٨ للمعايرة.")
@@ -91,7 +97,7 @@ struct QiblaView: View {
                         .padding(.horizontal, 30)
                 }
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.ink)
         }
         .onAppear { hp.start() }
         .onDisappear { hp.stop() }
@@ -123,14 +129,14 @@ struct CompassDial: View {
                 )
                 .frame(width: 290, height: 290)
             Circle()
-                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+                .stroke(Color.primary.opacity(0.10), lineWidth: 1)
                 .frame(width: 190, height: 190)
 
             ZStack {
                 ForEach(0..<72, id: \.self) { i in
                     let major = i % 6 == 0
                     Rectangle()
-                        .fill(Color.white.opacity(major ? 0.9 : 0.35))
+                        .fill(Theme.ink.opacity(major ? 0.9 : 0.35))
                         .frame(width: major ? 3 : 1.5, height: major ? 14 : 8)
                         .offset(y: -132)
                         .rotationEffect(.degrees(Double(i) * 5.0))
@@ -139,7 +145,7 @@ struct CompassDial: View {
                 ForEach(0..<4, id: \.self) { i in
                     Text(cardinals[i].0)
                         .font(.system(size: i == 0 ? 17 : 13, weight: .bold))
-                        .foregroundStyle(i == 0 ? Color.red.opacity(0.9) : Color.white.opacity(0.8))
+                        .foregroundStyle(i == 0 ? Color.red.opacity(0.9) : Theme.ink.opacity(0.8))
                         .rotationEffect(.degrees(-cardinals[i].1))
                         .offset(y: -106)
                         .rotationEffect(.degrees(cardinals[i].1))
@@ -164,11 +170,11 @@ struct CompassDial: View {
 
             Image(systemName: "arrowtriangle.down.fill")
                 .font(.title3)
-                .foregroundStyle(aligned ? Color.green : Color.white)
+                .foregroundStyle(aligned ? Color.green : Theme.ink)
                 .offset(y: -160)
 
             Circle()
-                .fill(aligned ? Color.green : Color.white.opacity(0.85))
+                .fill(aligned ? Color.green : Theme.ink.opacity(0.85))
                 .frame(width: 12, height: 12)
         }
         .frame(width: 320, height: 320)

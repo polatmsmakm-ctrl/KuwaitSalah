@@ -9,6 +9,38 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate Xcode project
+        run: xcodegen generate
+      - name: Unit tests (simulator)
+        run: |
+          set -o pipefail
+          DEV=$(xcrun simctl list devices available | grep -m1 -o 'iPhone [0-9A-Za-z ]*' | sed 's/ *$//')
+          xcodebuild test \
+            -project KuwaitSalah.xcodeproj \
+            -scheme KuwaitSalah \
+            -destination "platform=iOS Simulator,name=$DEV" \
+            -derivedDataPath build-test \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log
+      - name: Publish test log
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          mkdir -p /tmp/log && grep -E "error:|warning: .*Swift|Test Case|Executed|TEST (SUCCEEDED|FAILED)|\*\* " test.log | tail -n 300 > /tmp/log/test-summary.txt || true
+          git checkout --orphan ci-log-test
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp /tmp/log/test-summary.txt .
+          git add test-summary.txt
+          git commit -m "test log"
+          git push -f origin ci-log-test:ci-log-test
+
   build:
     runs-on: macos-latest
     steps:
@@ -22,6 +54,7 @@ jobs:
 
       - name: Build (unsigned)
         run: |
+          set -o pipefail
           xcodebuild \
             -project KuwaitSalah.xcodeproj \
             -scheme KuwaitSalah \
@@ -31,7 +64,21 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            build
+            build 2>&1 | tee build.log
+
+      - name: Publish build errors
+        if: failure()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          grep -E "error:" build.log | sort -u | head -n 100 > /tmp/errors.txt || true
+          git checkout --orphan ci-log-build
+          git rm -rf --cached . > /dev/null 2>&1 || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp /tmp/errors.txt build-errors.txt
+          git add build-errors.txt
+          git commit -m "build errors"
+          git push -f origin ci-log-build:ci-log-build
 
       - name: Package IPA
         run: |

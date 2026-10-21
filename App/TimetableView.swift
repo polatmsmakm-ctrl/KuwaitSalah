@@ -20,7 +20,7 @@ struct TimetableView: View {
         let title = days.first.map { fmt.custom($0, "MMMM yyyy") } ?? ""
 
         ZStack {
-            NightBackground()
+            AppBackground()
             VStack(spacing: 10) {
                 HStack {
                     Button {
@@ -53,8 +53,10 @@ struct TimetableView: View {
                     .padding(.bottom, 16)
                 }
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.ink)
         }
+        .navigationTitle("الجدول الشهري")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var headerRow: some View {
@@ -93,7 +95,7 @@ struct TimetableView: View {
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(isToday ? AnyShapeStyle(Theme.gold.opacity(0.32))
-                              : (friday ? AnyShapeStyle(Color.white.opacity(0.12)) : AnyShapeStyle(.ultraThinMaterial)))
+                              : (friday ? AnyShapeStyle(Color.primary.opacity(0.12)) : AnyShapeStyle(.ultraThinMaterial)))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)

@@ -14,6 +14,31 @@ struct Region: Identifiable, Hashable {
         Region(id: "ahmadi", name: "الأحمدي", lat: 29.0769, lng: 48.0838),
         Region(id: "jahra", name: "الجهراء", lat: 29.3375, lng: 47.6581)
     ]
+
+    /// المسافة بالكيلومتر (هافرساين)
+    static func distanceKm(_ lat1: Double, _ lng1: Double, _ lat2: Double, _ lng2: Double) -> Double {
+        let r = 6371.0
+        let p1 = lat1 * Double.pi / 180.0
+        let p2 = lat2 * Double.pi / 180.0
+        let dp = (lat2 - lat1) * Double.pi / 180.0
+        let dl = (lng2 - lng1) * Double.pi / 180.0
+        let a = sin(dp / 2) * sin(dp / 2) + cos(p1) * cos(p2) * sin(dl / 2) * sin(dl / 2)
+        return 2 * r * asin(min(1.0, sqrt(a)))
+    }
+
+    /// أقرب محافظة، أو nil إذا كان الموقع بعيداً عن الكويت (أكثر من ١٢٠ كم)
+    static func nearest(lat: Double, lng: Double) -> Region? {
+        var best: Region?
+        var bestD = Double.greatestFiniteMagnitude
+        for r in all {
+            let d = distanceKm(lat, lng, r.lat, r.lng)
+            if d < bestD {
+                bestD = d
+                best = r
+            }
+        }
+        return bestD <= 120 ? best : nil
+    }
 }
 
 /// Defaults follow the Kuwait method: Fajr 18 deg, Isha 17.5 deg.
@@ -23,6 +48,21 @@ struct CalcSettings: Codable, Equatable {
     var hanafiAsr: Bool = false
     /// Minute adjustments indexed by Prayer.rawValue
     var adjust: [Int] = [0, 0, 0, 0, 0, 0]
+
+    init() {}
+
+    enum CodingKeys: String, CodingKey {
+        case fajrAngle, ishaAngle, hanafiAsr, adjust
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        fajrAngle = try c.decodeIfPresent(Double.self, forKey: .fajrAngle) ?? 18
+        ishaAngle = try c.decodeIfPresent(Double.self, forKey: .ishaAngle) ?? 17.5
+        hanafiAsr = try c.decodeIfPresent(Bool.self, forKey: .hanafiAsr) ?? false
+        adjust = try c.decodeIfPresent([Int].self, forKey: .adjust) ?? [0, 0, 0, 0, 0, 0]
+        if adjust.count != 6 { adjust = [0, 0, 0, 0, 0, 0] }
+    }
 }
 
 struct DayTimes {

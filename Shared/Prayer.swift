@@ -29,7 +29,7 @@ enum Prayer: Int, CaseIterable, Identifiable, Codable {
 
     var hasIqama: Bool { self != .sunrise }
 
-    /// Index into Mosque.iqama (fajr, dhuhr, asr, maghrib, isha)
+    /// Index into Iqama.defaults (fajr, dhuhr, asr, maghrib, isha)
     var iqamaIndex: Int? {
         switch self {
         case .fajr: return 0

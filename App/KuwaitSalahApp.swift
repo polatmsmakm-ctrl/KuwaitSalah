@@ -3,15 +3,19 @@ import SwiftUI
 @main
 struct KuwaitSalahApp: App {
     @StateObject private var store = Store()
+    @StateObject private var quran = QuranStore()
+    @StateObject private var adhkar = AdhkarStore()
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(store)
+                .environmentObject(quran)
+                .environmentObject(adhkar)
                 .environment(\.layoutDirection, .rightToLeft)
-                .preferredColorScheme(.dark)
-                .tint(Theme.gold)
+                .preferredColorScheme(store.colorScheme)
+                .tint(Theme.accent)
                 .onChange(of: phase) { _, newPhase in
                     if newPhase == .active { store.refreshNotifications() }
                 }
@@ -23,18 +27,25 @@ struct KuwaitSalahApp: App {
 }
 
 struct RootView: View {
+    @EnvironmentObject var store: Store
+
     var body: some View {
-        TabView {
+        TabView(selection: $store.selectedTab) {
             HomeView()
                 .tabItem { Label("الأوقات", systemImage: "clock.fill") }
+                .tag(0)
+            QuranHomeView()
+                .tabItem { Label("القرآن", systemImage: "book.fill") }
+                .tag(1)
+            AdhkarTab()
+                .tabItem { Label("الأذكار", systemImage: "sparkles") }
+                .tag(2)
             QiblaView()
                 .tabItem { Label("القبلة", systemImage: "location.north.circle.fill") }
-            TimetableView()
-                .tabItem { Label("الشهر", systemImage: "calendar") }
-            TasbihView()
-                .tabItem { Label("التسبيح", systemImage: "circle.hexagongrid.fill") }
-            SettingsView()
-                .tabItem { Label("الإعدادات", systemImage: "gearshape.fill") }
+                .tag(3)
+            MoreView()
+                .tabItem { Label("المزيد", systemImage: "ellipsis.circle.fill") }
+                .tag(4)
         }
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)

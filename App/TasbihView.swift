@@ -19,7 +19,7 @@ struct TasbihView: View {
         let beadSize: CGFloat = n > 40 ? 5 : 10
 
         ZStack {
-            NightBackground()
+            AppBackground()
             VStack(spacing: 22) {
                 Menu {
                     ForEach(0..<phrases.count, id: \.self) { i in
@@ -52,7 +52,7 @@ struct TasbihView: View {
                         ForEach(0..<n, id: \.self) { i in
                             let on = i < filled
                             Circle()
-                                .fill(on ? Theme.gold : Color.white.opacity(0.18))
+                                .fill(on ? Theme.gold : Color.primary.opacity(0.18))
                                 .frame(width: beadSize, height: beadSize)
                                 .shadow(color: on ? Theme.gold.opacity(0.8) : Color.clear, radius: 4)
                                 .offset(y: -138)
@@ -62,7 +62,7 @@ struct TasbihView: View {
                             .fill(.ultraThinMaterial)
                             .frame(width: 236, height: 236)
                         Circle()
-                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                            .stroke(Color.primary.opacity(0.12), lineWidth: 1)
                             .frame(width: 236, height: 236)
                         VStack(spacing: 4) {
                             Text(fmt.number(count))
@@ -96,7 +96,7 @@ struct TasbihView: View {
                 }
                 .buttonStyle(PressStyle())
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.ink)
         }
     }
 }

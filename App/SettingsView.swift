@@ -1,19 +1,33 @@
 import SwiftUI
 import UserNotifications
+import UIKit
 
 struct SettingsView: View {
     @EnvironmentObject var store: Store
     @State private var authStatus: UNAuthorizationStatus = .notDetermined
+    @StateObject private var locator = LocationHelper()
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("المنطقة") {
+        Form {
+                Section {
                     Picker("المحافظة", selection: $store.prefs.regionID) {
                         ForEach(Region.all) { r in
                             Text(r.name).tag(r.id)
                         }
                     }
+                    Button {
+                        locator.onRegion = { r in store.prefs.regionID = r.id }
+                        locator.detect()
+                    } label: {
+                        Label("تحديد من موقعي", systemImage: "location.fill")
+                    }
+                    if let msg = locationMessage {
+                        Text(msg).font(.footnote).foregroundStyle(.secondary)
+                    }
+                } header: {
+                    Text("المنطقة")
+                } footer: {
+                    Text("الموقع يُستخدم مرة واحدة لاختيار أقرب محافظة ولا يُحفظ. يمكنك دائماً الاختيار يدوياً.")
                 }
 
                 Section {
@@ -84,6 +98,12 @@ struct SettingsView: View {
                 }
 
                 Section("العرض") {
+                    Picker("المظهر", selection: $store.prefs.appearance) {
+                        Text("تلقائي").tag(0)
+                        Text("فاتح").tag(1)
+                        Text("داكن").tag(2)
+                    }
+                    Toggle("تتبع الصلوات والإحصائيات", isOn: $store.prefs.statsEnabled)
                     Toggle("نظام ٢٤ ساعة", isOn: $store.prefs.use24h)
                     Toggle("أرقام عربية (٠١٢٣)", isOn: $store.prefs.arabicDigits)
                     Picker("تصحيح التاريخ الهجري", selection: $store.prefs.hijriOffset) {
@@ -94,7 +114,15 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    if authStatus != .authorized && authStatus != .provisional {
+                    if authStatus == .denied {
+                        Button {
+                            if let url = URL(string: UIApplication.openSettingsURLString) {
+                                UIApplication.shared.open(url)
+                            }
+                        } label: {
+                            Label("الإشعارات معطّلة، افتح إعدادات الجهاز لتفعيلها", systemImage: "bell.slash.fill")
+                        }
+                    } else if authStatus != .authorized && authStatus != .provisional {
                         Button("تفعيل الإشعارات") {
                             Task {
                                 await Notifier.requestAuth()
@@ -121,13 +149,23 @@ struct SettingsView: View {
                     Text("تُجدول الإشعارات لأسبوع قادم وتتجدد كل ما فتحت التطبيق. افتحه مرة بالأسبوع على الأقل.")
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(NightBackground())
-            .navigationTitle("الإعدادات")
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                authStatus = await Notifier.status()
-            }
+        .scrollContentBackground(.hidden)
+        .background(AppBackground())
+        .navigationTitle("الإعدادات")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            authStatus = await Notifier.status()
+        }
+    }
+
+    private var locationMessage: String? {
+        switch locator.status {
+        case .idle: return nil
+        case .locating: return "جارٍ تحديد الموقع…"
+        case .denied: return "صلاحية الموقع مرفوضة. اختر المحافظة يدوياً أو فعّلها من إعدادات الجهاز."
+        case .failed: return "تعذّر تحديد الموقع. اختر المحافظة يدوياً."
+        case .outsideKuwait: return "موقعك خارج الكويت. التطبيق مخصص للكويت، اختر المحافظة يدوياً."
+        case .found(let n): return "تم اختيار: \(n)"
         }
     }
 

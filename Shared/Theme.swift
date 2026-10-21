@@ -1,13 +1,34 @@
 import SwiftUI
+import UIKit
 
 enum Theme {
+    // الهوية: أخضر زمردي داكن، أخضر ليلي، عاجي، ولمسات ذهبية
     static let gold = Color(red: 0.96, green: 0.80, blue: 0.46)
+    static let emerald = Color(red: 0.05, green: 0.42, blue: 0.34)
+    static let emeraldDeep = Color(red: 0.02, green: 0.20, blue: 0.18)
+    static let ivory = Color(red: 0.98, green: 0.96, blue: 0.90)
 
-    static let night: [Color] = [Color(red: 0.03, green: 0.05, blue: 0.15), Color(red: 0.09, green: 0.15, blue: 0.34)]
-    static let dawn: [Color] = [Color(red: 0.13, green: 0.17, blue: 0.40), Color(red: 0.80, green: 0.50, blue: 0.48)]
-    static let day: [Color] = [Color(red: 0.08, green: 0.36, blue: 0.62), Color(red: 0.32, green: 0.66, blue: 0.82)]
-    static let afternoon: [Color] = [Color(red: 0.16, green: 0.38, blue: 0.62), Color(red: 0.88, green: 0.62, blue: 0.34)]
-    static let dusk: [Color] = [Color(red: 0.26, green: 0.14, blue: 0.38), Color(red: 0.78, green: 0.38, blue: 0.36)]
+    // ألوان تتكيف مع الوضع الفاتح والداكن (للشاشات غير الرئيسية)
+    static let ink = Color(UIColor { (t: UITraitCollection) -> UIColor in
+        t.userInterfaceStyle == .dark ? UIColor.white : UIColor(red: 0.04, green: 0.20, blue: 0.17, alpha: 1)
+    })
+    static let inkSecondary = Color(UIColor { (t: UITraitCollection) -> UIColor in
+        t.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.65)
+            : UIColor(red: 0.04, green: 0.20, blue: 0.17, alpha: 0.65)
+    })
+    static let accent = Color(UIColor { (t: UITraitCollection) -> UIColor in
+        t.userInterfaceStyle == .dark
+            ? UIColor(red: 0.96, green: 0.80, blue: 0.46, alpha: 1)
+            : UIColor(red: 0.05, green: 0.42, blue: 0.34, alpha: 1)
+    })
+
+    // سماء الصفحة الرئيسية حسب وقت اليوم (بنَفَس زمردي)
+    static let night: [Color] = [Color(red: 0.01, green: 0.08, blue: 0.09), Color(red: 0.03, green: 0.19, blue: 0.18)]
+    static let dawn: [Color] = [Color(red: 0.05, green: 0.20, blue: 0.25), Color(red: 0.78, green: 0.58, blue: 0.42)]
+    static let day: [Color] = [Color(red: 0.02, green: 0.36, blue: 0.34), Color(red: 0.30, green: 0.66, blue: 0.58)]
+    static let afternoon: [Color] = [Color(red: 0.05, green: 0.34, blue: 0.34), Color(red: 0.86, green: 0.64, blue: 0.34)]
+    static let dusk: [Color] = [Color(red: 0.10, green: 0.18, blue: 0.28), Color(red: 0.72, green: 0.40, blue: 0.30)]
 
     /// ألوان الخلفية حسب وقت اليوم
     static func colors(now: Date, today: DayTimes) -> [Color] {

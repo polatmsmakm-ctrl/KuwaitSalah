@@ -5,9 +5,10 @@ private func fracPart(_ v: Double) -> Double { v - floor(v) }
 /// نجوم تلمع بهدوء
 struct StarField: View {
     var intensity: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 12.0)) { ctx in
+        TimelineView(.animation(minimumInterval: reduceMotion ? 3600.0 : 1.0 / 12.0)) { ctx in
             Canvas { gc, size in
                 let t = ctx.date.timeIntervalSinceReferenceDate
                 for i in 0..<80 {
@@ -45,17 +46,29 @@ struct SkyBackground: View {
     }
 }
 
-/// خلفية ليلية ثابتة للشاشات الأخرى
-struct NightBackground: View {
+/// خلفية الشاشات الأخرى: ليل زمردي بنجوم في الداكن، وعاجي دافئ في الفاتح
+struct AppBackground: View {
+    @Environment(\.colorScheme) private var scheme
+
     var body: some View {
         ZStack {
-            LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
-            Circle()
-                .fill(Theme.gold.opacity(0.10))
-                .frame(width: 280, height: 280)
-                .blur(radius: 70)
-                .offset(x: -110, y: -280)
-            StarField(intensity: 1.0)
+            if scheme == .dark {
+                LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
+                Circle()
+                    .fill(Theme.gold.opacity(0.10))
+                    .frame(width: 280, height: 280)
+                    .blur(radius: 70)
+                    .offset(x: -110, y: -280)
+                StarField(intensity: 1.0)
+            } else {
+                LinearGradient(colors: [Theme.ivory, Color(red: 0.89, green: 0.95, blue: 0.90)],
+                               startPoint: .top, endPoint: .bottom)
+                Circle()
+                    .fill(Theme.gold.opacity(0.25))
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 80)
+                    .offset(x: 120, y: -280)
+            }
         }
         .ignoresSafeArea()
     }
@@ -65,7 +78,7 @@ extension View {
     func glassCard(_ radius: CGFloat = 22) -> some View {
         self
             .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: radius))
-            .overlay(RoundedRectangle(cornerRadius: radius).stroke(Color.white.opacity(0.12), lineWidth: 1))
+            .overlay(RoundedRectangle(cornerRadius: radius).stroke(Color.primary.opacity(0.10), lineWidth: 1))
     }
 }
 
