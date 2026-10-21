@@ -31,18 +31,23 @@ struct AppBackground: View {
     }
 
     var body: some View {
-        ZStack {
-            LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
-            if let img = image {
-                Image(uiImage: img)
-                    .resizable()
-                    .scaledToFill()
-                    .accessibilityHidden(true)
+        // الصورة داخل overlay حتى لا تتحكم بحجم التخطيط (كانت تُوسّع الشاشة وتقصّ المحتوى)
+        Color.black
+            .overlay {
+                ZStack {
+                    LinearGradient(colors: Theme.night, startPoint: .top, endPoint: .bottom)
+                    if let img = image {
+                        Image(uiImage: img)
+                            .resizable()
+                            .scaledToFill()
+                            .accessibilityHidden(true)
+                    }
+                    LinearGradient(colors: [Color.black.opacity(dim + 0.1), Color.black.opacity(dim)],
+                                   startPoint: .top, endPoint: .bottom)
+                }
             }
-            LinearGradient(colors: [Color.black.opacity(dim + 0.1), Color.black.opacity(dim)],
-                           startPoint: .top, endPoint: .bottom)
-        }
-        .ignoresSafeArea()
+            .clipped()
+            .ignoresSafeArea()
     }
 }
 
