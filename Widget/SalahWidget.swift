@@ -287,7 +287,7 @@ struct SalahWidget: Widget {
         StaticConfiguration(kind: kind, provider: SalahProvider()) { entry in
             SalahWidgetView(entry: entry)
         }
-        .configurationDisplayName("أوقات الصلاة")
+        .configurationDisplayName("منار القرآن")
         .description("الصلاة القادمة مع العد التنازلي ووقت الإقامة")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge,
                             .accessoryCircular, .accessoryRectangular, .accessoryInline])

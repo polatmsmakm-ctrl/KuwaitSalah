@@ -24,7 +24,7 @@ targets:
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: أوقات الصلاة
+        CFBundleDisplayName: منار القرآن
         CFBundleName: KuwaitSalah
         UILaunchScreen: {}
         NSLocationWhenInUseUsageDescription: لتحديد اتجاه القبلة باستخدام البوصلة
@@ -57,7 +57,7 @@ targets:
     info:
       path: Widget/Info.plist
       properties:
-        CFBundleDisplayName: أوقات الصلاة
+        CFBundleDisplayName: منار القرآن
         CFBundleName: SalahWidget
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
