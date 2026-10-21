@@ -92,3 +92,13 @@ final class QuranAPIParsingTests: XCTestCase {
         XCTAssertEqual(s, "الأول نص\n\nالثاني")
     }
 }
+
+final class TafsirDisplayTests: XCTestCase {
+    func testDisplayStripsBidiControlsAndForcesRTL() {
+        let raw = "\u{202D}قال أبو جعفر\u{202C}\n\nتأويل"
+        let out = TafsirSheet.display(raw)
+        XCTAssertFalse(out.contains("\u{202D}"))
+        XCTAssertTrue(out.hasPrefix("\u{200F}قال"))
+        XCTAssertTrue(out.contains("\n\n\u{200F}تأويل"))
+    }
+}

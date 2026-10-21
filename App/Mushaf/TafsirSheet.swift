@@ -65,12 +65,14 @@ struct TafsirSheet: View {
     @ViewBuilder
     private var content: some View {
         if let text = text {
-            Text(text)
-                .font(.system(size: 19))
-                .lineSpacing(8)
+            Text(Self.display(text))
+                .font(Font.custom("Amiri-Regular", size: 23))
+                .lineSpacing(12)
                 .foregroundStyle(Theme.ink)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .multilineTextAlignment(.leading)
+                .environment(\.layoutDirection, .rightToLeft)
+                .textSelection(.enabled)
                 .padding(14)
                 .glassCard(18)
         } else if failed {
@@ -90,6 +92,17 @@ struct TafsirSheet: View {
         } else {
             ProgressView().tint(Theme.accent).frame(maxWidth: .infinity).padding(30)
         }
+    }
+
+    /// بعض التفاسير تأتي بمحارف اتجاه مختلطة فتنقلب الفقرة (الكلمات تُقرأ من اليسار):
+    /// نحذف محارف التحكم القديمة ونثبّت اتجاه كل فقرة من اليمين لليسار.
+    static func display(_ raw: String) -> String {
+        let controls = Set<Character>(["\u{200E}", "\u{200F}", "\u{202A}", "\u{202B}", "\u{202C}", "\u{202D}", "\u{202E}",
+                                      "\u{2066}", "\u{2067}", "\u{2068}", "\u{2069}", "\u{061C}"])
+        let clean = String(raw.filter { !controls.contains($0) })
+        return clean.components(separatedBy: "\n")
+            .map { $0.isEmpty ? $0 : "\u{200F}" + $0 }
+            .joined(separator: "\n")
     }
 
     private func load() async {

@@ -34,6 +34,7 @@ targets:
           - audio
         UIAppFonts:
           - AmiriQuran.ttf
+          - Amiri-Regular.ttf
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         UIApplicationSceneManifest:
