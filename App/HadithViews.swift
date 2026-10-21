@@ -50,12 +50,6 @@ struct HadithHomeView: View {
         .navigationTitle("الأحاديث")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $query, prompt: "ابحث في البخاري ومسلم")
-        .navigationDestination(for: HadithChapterTarget.self) { t in
-            HadithChapterView(target: t)
-        }
-        .navigationDestination(for: HadithItem.self) { h in
-            HadithDetailView(item: h)
-        }
         .task { await hadith.loadIfNeeded() }
         .task(id: query) {
             let q = query.trimmingCharacters(in: .whitespaces)
@@ -71,7 +65,9 @@ struct HadithHomeView: View {
     private var bookCards: some View {
         ForEach(0..<2, id: \.self) { i in
             if let b = hadith.books[i] {
-                NavigationLink(value: HadithChapterTarget(book: i, chapter: -1)) {
+                NavigationLink {
+                    HadithChapterView(target: HadithChapterTarget(book: i, chapter: -1))
+                } label: {
                     HStack(spacing: 12) {
                         Image(systemName: "books.vertical.fill").font(.title2).foregroundStyle(Theme.accent)
                         VStack(alignment: .leading, spacing: 2) {
@@ -107,7 +103,7 @@ struct HadithHomeView: View {
                 .font(.footnote).foregroundStyle(Theme.inkSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             ForEach(hits) { h in
-                NavigationLink(value: h) { HadithCard(item: h, lines: 4) }.buttonStyle(.plain)
+                NavigationLink { HadithDetailView(item: h) } label: { HadithCard(item: h, lines: 4) }.buttonStyle(.plain)
             }
         }
     }
@@ -125,7 +121,7 @@ struct HadithHomeView: View {
             .padding(.top, 40)
         } else {
             ForEach(items) { h in
-                NavigationLink(value: h) { HadithCard(item: h, lines: 4) }.buttonStyle(.plain)
+                NavigationLink { HadithDetailView(item: h) } label: { HadithCard(item: h, lines: 4) }.buttonStyle(.plain)
             }
         }
     }
@@ -183,7 +179,9 @@ struct HadithChapterView: View {
         ScrollView {
             LazyVStack(spacing: 8) {
                 ForEach(Array(book.chapters.enumerated()), id: \.offset) { i, title in
-                    NavigationLink(value: HadithChapterTarget(book: target.book, chapter: i)) {
+                    NavigationLink {
+                        HadithChapterView(target: HadithChapterTarget(book: target.book, chapter: i))
+                    } label: {
                         HStack {
                             Text(title).font(.system(size: 18, weight: .semibold)).multilineTextAlignment(.leading)
                             Spacer()
@@ -208,7 +206,7 @@ struct HadithChapterView: View {
         return ScrollView {
             LazyVStack(spacing: 8) {
                 ForEach(items) { h in
-                    NavigationLink(value: h) { HadithCard(item: h, lines: 6) }.buttonStyle(.plain)
+                    NavigationLink { HadithDetailView(item: h) } label: { HadithCard(item: h, lines: 6) }.buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 16)
