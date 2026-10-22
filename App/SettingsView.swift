@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var authStatus: UNAuthorizationStatus = .notDetermined
     @StateObject private var locator = LocationHelper()
     @AppStorage("liveactivity.on") private var liveOn = true
+    @AppStorage("adhan.customSound") private var customSound = true
 
     var body: some View {
         Form {
@@ -100,6 +101,7 @@ struct SettingsView: View {
 
                 Section("العرض") {
                     Toggle("الصلاة القادمة على شاشة القفل", isOn: $liveOn)
+                    Toggle("صوت مخصص لإشعار الأذان", isOn: $customSound)
                     Toggle("تتبع الصلوات والإحصائيات", isOn: $store.prefs.statsEnabled)
                     Toggle("نظام ٢٤ ساعة", isOn: $store.prefs.use24h)
                     Toggle("أرقام عربية (٠١٢٣)", isOn: $store.prefs.arabicDigits)

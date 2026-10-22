@@ -11,13 +11,14 @@ enum Notifier {
         await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
     }
 
-    private static func request(id: String, title: String, body: String, fire: Date, now: Date) -> (Date, UNNotificationRequest)? {
+    private static func request(id: String, title: String, body: String, fire: Date, now: Date, custom: Bool = false) -> (Date, UNNotificationRequest)? {
         let interval = fire.timeIntervalSince(now)
         guard interval > 2 else { return nil }
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.sound = .default
+        let useCustom = custom && (UserDefaults.standard.object(forKey: "adhan.customSound") as? Bool ?? true)
+        content.sound = useCustom ? UNNotificationSound(named: UNNotificationSoundName("adhan.caf")) : .default
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
         return (fire, UNNotificationRequest(identifier: id, content: content, trigger: trigger))
     }
@@ -64,7 +65,7 @@ enum Notifier {
                 }
 
                 let adhanTitle = p == .sunrise ? "الشروق" : "حان الآن أذان \(name)"
-                if let r = request(id: "adhan-\(tag)", title: adhanTitle, body: "الكويت", fire: t, now: now) {
+                if let r = request(id: "adhan-\(tag)", title: adhanTitle, body: "الكويت", fire: t, now: now, custom: p != .sunrise) {
                     items.append(r)
                 }
 
