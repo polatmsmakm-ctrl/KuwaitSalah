@@ -55,6 +55,13 @@ struct WirdView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    private func pctText(_ fmt: Fmt) -> String {
+        let p = wird.progress * 100
+        if p >= 10 || p == 0 { return fmt.number(Int(p.rounded())) }
+        let tenths = Int((p * 10).rounded())
+        return fmt.number(tenths / 10) + (fmt.arabicDigits ? "٫" : ".") + fmt.number(tenths % 10)
+    }
+
     private func ring(_ fmt: Fmt) -> some View {
         VStack(spacing: 10) {
             ZStack {
@@ -64,14 +71,18 @@ struct WirdView: View {
                     .stroke(Theme.gold, style: StrokeStyle(lineWidth: 14, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                 VStack(spacing: 2) {
-                    Text("\(fmt.number(Int((wird.progress * 100).rounded())))٪")
-                        .font(.system(size: 36, weight: .black))
-                        .foregroundStyle(Theme.gold)
+                    HStack(spacing: 2) {
+                        Text(pctText(fmt))
+                            .font(.system(size: 34, weight: .black))
+                        Text("%").font(.system(size: 20, weight: .bold))
+                    }
+                    .foregroundStyle(Theme.gold)
                     Text("\(fmt.number(wird.readCount)) من \(fmt.number(WirdStore.totalPages)) صفحة")
                         .font(.caption)
                         .foregroundStyle(Theme.inkSecondary)
                 }
             }
+            .environment(\.layoutDirection, .leftToRight)
             .frame(width: 170, height: 170)
             HStack(spacing: 18) {
                 Label("\(fmt.number(wird.state.khatmat)) ختمة", systemImage: "checkmark.seal.fill")
