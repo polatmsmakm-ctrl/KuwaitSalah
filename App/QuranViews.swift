@@ -525,7 +525,12 @@ struct AyahRow: View {
                     } label: {
                         Label("تظليل وملاحظة", systemImage: "highlighter")
                     }
-                    ShareLink(item: text) {
+                    Button {
+                        let cap = "\(quran.surah(surah)?.name ?? "") · آية \(number)"
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            SharePresenter.present(["\(text)\n\n﴿\(cap)﴾"])
+                        }
+                    } label: {
                         Label("مشاركة", systemImage: "square.and.arrow.up")
                     }
                     ShareAyahImageButton(text: text, caption: "\(quran.surah(surah)?.name ?? "") · آية \(fmt.number(number))")

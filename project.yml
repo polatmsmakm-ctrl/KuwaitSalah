@@ -30,6 +30,7 @@ targets:
         NSLocationWhenInUseUsageDescription: لتحديد اتجاه القبلة باستخدام البوصلة
         NSMicrophoneUsageDescription: لتسميع القرآن بصوتك ومقارنته بالنص
         NSSpeechRecognitionUsageDescription: للتعرّف على تلاوتك وكشف الأخطاء في الحفظ
+        NSSupportsLiveActivities: true
         UIBackgroundModes:
           - audio
         UIAppFonts:
@@ -55,6 +56,10 @@ targets:
       - Shared/Iqama.swift
       - Shared/Theme.swift
       - Shared/Format.swift
+      - Shared/AyahPicks.swift
+      - Shared/PrayerActivity.swift
+      - path: App/Resources/quran.json
+        buildPhase: resources
     info:
       path: Widget/Info.plist
       properties:

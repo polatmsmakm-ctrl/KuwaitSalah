@@ -6,6 +6,7 @@ struct SettingsView: View {
     @EnvironmentObject var store: Store
     @State private var authStatus: UNAuthorizationStatus = .notDetermined
     @StateObject private var locator = LocationHelper()
+    @AppStorage("liveactivity.on") private var liveOn = true
 
     var body: some View {
         Form {
@@ -98,6 +99,7 @@ struct SettingsView: View {
                 }
 
                 Section("العرض") {
+                    Toggle("الصلاة القادمة على شاشة القفل", isOn: $liveOn)
                     Toggle("تتبع الصلوات والإحصائيات", isOn: $store.prefs.statsEnabled)
                     Toggle("نظام ٢٤ ساعة", isOn: $store.prefs.use24h)
                     Toggle("أرقام عربية (٠١٢٣)", isOn: $store.prefs.arabicDigits)

@@ -31,7 +31,10 @@ struct KuwaitSalahApp: App {
                 .preferredColorScheme(store.colorScheme)
                 .tint(Theme.accent)
                 .onChange(of: phase) { _, newPhase in
-                    if newPhase == .active { store.refreshNotifications() }
+                    if newPhase == .active {
+                        store.refreshNotifications()
+                        LiveActivityManager.sync(region: store.region, calc: store.prefs.calc)
+                    }
                 }
                 .onChange(of: store.prefs) { _, _ in
                     store.refreshNotifications()

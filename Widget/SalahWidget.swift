@@ -277,6 +277,8 @@ struct SalahWidgetView: View {
 struct SalahWidgetBundle: WidgetBundle {
     var body: some Widget {
         SalahWidget()
+        AyahWidget()
+        PrayerLiveActivity()
     }
 }
 

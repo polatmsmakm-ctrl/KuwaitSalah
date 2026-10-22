@@ -39,23 +39,32 @@ enum AyahImage {
     }
 }
 
+enum SharePresenter {
+    @MainActor
+    static func present(_ items: [Any]) {
+        guard let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first(where: { $0.activationState == .foregroundActive }) ?? UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first,
+              var top = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController ?? scene.windows.first?.rootViewController else { return }
+        while let p = top.presentedViewController { top = p }
+        let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        vc.popoverPresentationController?.sourceView = top.view
+        vc.popoverPresentationController?.sourceRect = CGRect(x: top.view.bounds.midX, y: top.view.bounds.midY, width: 1, height: 1)
+        top.present(vc, animated: true)
+    }
+}
+
 struct ShareAyahImageButton: View {
     let text: String
     let caption: String
-    @State private var image: Image?
 
     var body: some View {
-        Group {
-            if let image {
-                ShareLink(item: image, preview: SharePreview(caption, image: image)) {
-                    Label("مشاركة كصورة", systemImage: "photo")
+        Button {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                if let ui = AyahImage.render(text: text, caption: caption) {
+                    SharePresenter.present([ui])
                 }
-            } else {
-                Button { } label: { Label("مشاركة كصورة", systemImage: "photo") }
-                    .task {
-                        if let ui = AyahImage.render(text: text, caption: caption) { image = Image(uiImage: ui) }
-                    }
             }
+        } label: {
+            Label("مشاركة كصورة", systemImage: "photo")
         }
     }
 }

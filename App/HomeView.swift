@@ -57,6 +57,7 @@ struct HomeContent: View {
                     HeaderView(now: now, regionName: region.name)
                     SkyArc(progress: arc.progress, isDay: arc.isDay, leftLabel: arc.left, rightLabel: arc.right)
                     HeroView(now: now, nxt: nxt, prv: prv)
+                    RamadanCard(now: now)
                     ShortcutsRow()
                     PrayerListView(now: now, today: today, nxt: nxt)
                     DhikrCard(now: now)
