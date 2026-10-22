@@ -99,8 +99,8 @@ struct MushafView: View {
         }
         .onAppear { preload(page) }
         .task(id: page) {
-            // الصفحة تُحسب مقروءة إذا بقيت فيها ٤ ثوانٍ
-            try? await Task.sleep(nanoseconds: 4_000_000_000)
+            // الصفحة تُحسب مقروءة إذا بقيت فيها ٣ ثوانٍ
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
             if Task.isCancelled { return }
             wird.visit(page)
         }

@@ -94,6 +94,14 @@ final class WirdStore: ObservableObject {
         return max(1, Int((Double(Self.totalPages) / d).rounded(.up)))
     }
 
+    static let pageOptions = [1, 2, 4, 5, 10, 20]
+
+    /// اختيار الهدف بعدد الصفحات يومياً (أبسط من اختيار المدة)
+    func setPagesPerDay(_ n: Int) {
+        state.targetDays = max(1, Int((Double(Self.totalPages) / Double(max(1, n))).rounded(.up)))
+        updateReminder()
+    }
+
     var pagesToday: Int {
         state.today == DayKey.key(Date()) ? state.todayPages.count : 0
     }

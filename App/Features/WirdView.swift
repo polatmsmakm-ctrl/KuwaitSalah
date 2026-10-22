@@ -25,34 +25,97 @@ struct WirdView: View {
         ZStack {
             AppBackground(kind: .quran, dim: 0.55)
             ScrollView {
-                VStack(spacing: 14) {
+                VStack(spacing: 16) {
                     ring(fmt)
-                    todayCard(fmt)
+
                     NavigationLink(value: MushafTarget(page: wird.nextPage, focus: nil)) {
                         HStack {
-                            Image(systemName: "book.pages.fill")
-                            Text("تابع الورد من صفحة \(fmt.number(wird.nextPage))")
-                                .font(.system(size: 17, weight: .bold))
+                            Image(systemName: "book.pages.fill").font(.title3)
+                            Text("كمّل القراءة · صفحة \(fmt.number(wird.nextPage))")
+                                .font(.system(size: 19, weight: .bold))
                             Spacer()
                             Image(systemName: "chevron.left")
                         }
                         .foregroundStyle(Color.black.opacity(0.85))
-                        .padding(14)
+                        .padding(18)
                         .frame(maxWidth: .infinity)
-                        .background(Theme.gold, in: RoundedRectangle(cornerRadius: 18))
+                        .background(Theme.gold, in: RoundedRectangle(cornerRadius: 20))
                     }
-                    planCard(fmt)
-                    juzCard(fmt)
-                    Button(role: .destructive) { wird.reset() } label: {
-                        Text("بدء ختمة جديدة من الصفر").font(.footnote)
+
+                    goalCard(fmt)
+                    reminderCard
+
+                    DisclosureGroup {
+                        VStack(spacing: 14) {
+                            juzCard(fmt)
+                            Button(role: .destructive) { wird.reset() } label: {
+                                Text("بدء ختمة جديدة من الصفر").font(.footnote)
+                            }
+                        }
+                        .padding(.top, 8)
+                    } label: {
+                        Text("تفاصيل الأجزاء").font(.subheadline.weight(.semibold))
                     }
-                    .padding(.top, 4)
+                    .tint(Theme.accent)
+                    .foregroundStyle(Theme.ink)
+                    .padding(14)
+                    .glassCard(18)
                 }
                 .padding(16)
             }
         }
         .navigationTitle("الختمة والورد")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// الهدف اليومي: اختر عدد الصفحات فقط
+    private func goalCard(_ fmt: Fmt) -> some View {
+        let goal = wird.dailyGoal
+        let done = wird.pagesToday
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("كم صفحة باليوم؟").font(.headline)
+                Spacer()
+                Text("اليوم \(fmt.number(done)) / \(fmt.number(goal))")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(done >= goal ? Color.green : Theme.accent)
+            }
+            ProgressView(value: min(1, Double(done) / Double(max(1, goal))))
+                .tint(done >= goal ? Color.green : Theme.gold)
+            HStack(spacing: 8) {
+                ForEach(WirdStore.pageOptions, id: \.self) { n in
+                    let on = n == goal
+                    Button { wird.setPagesPerDay(n) } label: {
+                        Text(fmt.number(n))
+                            .font(.system(size: 17, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(on ? Theme.gold : Color.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                            .foregroundStyle(on ? Color.black.opacity(0.85) : Theme.ink)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Text(done >= goal ? "ما شاء الله، أتممت وردك اليوم" : "تُحسب الصفحة تلقائياً إذا بقيت فيها ٣ ثوانٍ.")
+                .font(.caption)
+                .foregroundStyle(Theme.inkSecondary)
+        }
+        .foregroundStyle(Theme.ink)
+        .padding(14)
+        .glassCard(18)
+    }
+
+    private var reminderCard: some View {
+        VStack(spacing: 10) {
+            Toggle("ذكّرني كل يوم", isOn: Binding(get: { wird.state.reminderOn },
+                                                  set: { wird.state.reminderOn = $0; wird.updateReminder() }))
+            if wird.state.reminderOn {
+                DatePicker("الوقت", selection: reminderDate, displayedComponents: .hourAndMinute)
+            }
+        }
+        .foregroundStyle(Theme.ink)
+        .padding(14)
+        .glassCard(18)
     }
 
     private func pctText(_ fmt: Fmt) -> String {
@@ -96,52 +159,6 @@ struct WirdView: View {
         .frame(maxWidth: .infinity)
         .padding(16)
         .glassCard(20)
-    }
-
-    private func todayCard(_ fmt: Fmt) -> some View {
-        let goal = wird.dailyGoal
-        let done = wird.pagesToday
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("ورد اليوم").font(.headline)
-                Spacer()
-                Text("\(fmt.number(done)) / \(fmt.number(goal)) صفحة")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(done >= goal ? Color.green : Theme.accent)
-            }
-            ProgressView(value: min(1, Double(done) / Double(goal)))
-                .tint(done >= goal ? Color.green : Theme.gold)
-            Text(done >= goal ? "ما شاء الله، أتممت وردك اليوم" : "تُحسب الصفحة إذا بقيت فيها بضع ثوانٍ.")
-                .font(.caption)
-                .foregroundStyle(Theme.inkSecondary)
-        }
-        .foregroundStyle(Theme.ink)
-        .padding(14)
-        .glassCard(18)
-    }
-
-    private func planCard(_ fmt: Fmt) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("خطة الختمة").font(.headline)
-            Picker("المدة", selection: Binding(get: { wird.state.targetDays },
-                                               set: { wird.state.targetDays = $0; wird.updateReminder() })) {
-                ForEach(WirdStore.dayOptions, id: \.self) { d in
-                    Text("ختمة في \(fmt.number(d)) يوم").tag(d)
-                }
-            }
-            .pickerStyle(.menu)
-            Text("الهدف اليومي: \(fmt.number(wird.dailyGoal)) صفحة")
-                .font(.subheadline)
-                .foregroundStyle(Theme.inkSecondary)
-            Toggle("تذكير يومي بالورد", isOn: Binding(get: { wird.state.reminderOn },
-                                                      set: { wird.state.reminderOn = $0; wird.updateReminder() }))
-            if wird.state.reminderOn {
-                DatePicker("وقت التذكير", selection: reminderDate, displayedComponents: .hourAndMinute)
-            }
-        }
-        .foregroundStyle(Theme.ink)
-        .padding(14)
-        .glassCard(18)
     }
 
     private func juzCard(_ fmt: Fmt) -> some View {

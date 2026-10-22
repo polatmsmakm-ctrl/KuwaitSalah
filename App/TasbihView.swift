@@ -6,6 +6,9 @@ struct TasbihView: View {
     @AppStorage("tasbih.target") private var target: Int = 33
     @AppStorage("tasbih.phrase") private var phraseIndex: Int = 0
     @AppStorage("tasbih.total") private var total: Int = 0
+    @AppStorage("tasbih.sound") private var soundOn: Bool = true
+    @State private var ripples: [Int] = []
+    @State private var burst: Int = 0
 
     private let phrases = ["سبحان الله", "الحمد لله", "الله أكبر", "لا إله إلا الله", "أستغفر الله", "اللهم صل على محمد"]
 
@@ -46,9 +49,22 @@ struct TasbihView: View {
                 Button {
                     count += 1
                     total += 1
+                    var finished = false
                     if target > 0 && count > target { count = 1 }
+                    if target > 0 && count == target { finished = true }
+                    if finished {
+                        TasbihSound.shared.complete(sound: soundOn)
+                        burst += 1
+                    } else {
+                        TasbihSound.shared.tap(sound: soundOn)
+                    }
+                    let id = total
+                    ripples.append(id)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { ripples.removeAll { $0 == id } }
                 } label: {
                     ZStack {
+                        ForEach(ripples, id: \.self) { _ in RippleRing() }
+                        if burst > 0 { SparkBurst().id(burst) }
                         ForEach(0..<n, id: \.self) { i in
                             let on = i < filled
                             Circle()
@@ -80,23 +96,65 @@ struct TasbihView: View {
                     .frame(width: 300, height: 300)
                 }
                 .buttonStyle(PressStyle())
-                .sensoryFeedback(.impact, trigger: count)
 
                 Text("المجموع \(fmt.number(total))")
                     .font(.footnote)
                     .opacity(0.65)
 
-                Button {
-                    count = 0
-                } label: {
-                    Label("تصفير", systemImage: "arrow.counterclockwise")
-                        .padding(.horizontal, 22)
-                        .padding(.vertical, 10)
-                        .glassCard(30)
+                HStack(spacing: 12) {
+                    Button {
+                        count = 0
+                    } label: {
+                        Label("تصفير", systemImage: "arrow.counterclockwise")
+                            .padding(.horizontal, 22)
+                            .padding(.vertical, 10)
+                            .glassCard(30)
+                    }
+                    .buttonStyle(PressStyle())
+                    Button {
+                        soundOn.toggle()
+                    } label: {
+                        Image(systemName: soundOn ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                            .padding(12)
+                            .glassCard(30)
+                    }
+                    .buttonStyle(PressStyle())
                 }
-                .buttonStyle(PressStyle())
             }
             .foregroundStyle(Theme.ink)
         }
+    }
+}
+
+/// موجة ذهبية تتسع وتتلاشى عند كل ضغطة
+struct RippleRing: View {
+    @State private var go = false
+    var body: some View {
+        Circle()
+            .stroke(Theme.gold, lineWidth: 3)
+            .frame(width: 236, height: 236)
+            .scaleEffect(go ? 1.35 : 1.0)
+            .opacity(go ? 0 : 0.8)
+            .onAppear { withAnimation(.easeOut(duration: 0.65)) { go = true } }
+            .allowsHitTesting(false)
+    }
+}
+
+/// شرارات عند إكمال الهدف
+struct SparkBurst: View {
+    @State private var go = false
+    var body: some View {
+        ZStack {
+            ForEach(0..<16, id: \.self) { i in
+                Image(systemName: "sparkle")
+                    .font(.system(size: i % 2 == 0 ? 18 : 12))
+                    .foregroundStyle(Theme.gold)
+                    .offset(y: go ? -170 : -110)
+                    .rotationEffect(.degrees(Double(i) * 22.5))
+                    .opacity(go ? 0 : 1)
+            }
+        }
+        .onAppear { withAnimation(.easeOut(duration: 0.9)) { go = true } }
+        .allowsHitTesting(false)
     }
 }
