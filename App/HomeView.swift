@@ -14,7 +14,7 @@ struct HomeContent: View {
 
     private func arcInfo(today: DayTimes, fmt: Fmt) -> (progress: Double, isDay: Bool, left: String, right: String) {
         let region = store.region
-        let calc = store.prefs.calc
+        let calc = store.calc
         let cal = PrayerCalc.calendar
 
         if now >= today[.sunrise] && now < today[.maghrib] {
@@ -43,7 +43,7 @@ struct HomeContent: View {
 
     var body: some View {
         let region = store.region
-        let calc = store.prefs.calc
+        let calc = store.calc
         let fmt = store.fmt
         let today = PrayerCalc.compute(day: now, region: region, settings: calc)
         let nxt = PrayerCalc.next(after: now, region: region, settings: calc)
@@ -54,7 +54,7 @@ struct HomeContent: View {
             AppBackground(kind: .home, dim: 0.5)
             ScrollView {
                 VStack(spacing: 16) {
-                    HeaderView(now: now, regionName: region.name)
+                    HeaderView(now: now, regionName: region.label)
                     SkyArc(progress: arc.progress, isDay: arc.isDay, leftLabel: arc.left, rightLabel: arc.right)
                     HeroView(now: now, nxt: nxt, prv: prv)
                     RamadanCard(now: now)
@@ -81,7 +81,7 @@ struct HeaderView: View {
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
                     Image(systemName: "location.fill")
-                    Text("الكويت · \(regionName)")
+                    Text(regionName)
                 }
                 .font(.caption.weight(.medium))
                 .padding(.horizontal, 12)

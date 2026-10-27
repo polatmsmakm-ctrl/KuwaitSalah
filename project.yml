@@ -27,7 +27,7 @@ targets:
         CFBundleDisplayName: منار القرآن
         CFBundleName: KuwaitSalah
         UILaunchScreen: {}
-        NSLocationWhenInUseUsageDescription: لتحديد اتجاه القبلة باستخدام البوصلة
+        NSLocationWhenInUseUsageDescription: لحساب أوقات الصلاة واتجاه القبلة حسب موقعك
         NSMicrophoneUsageDescription: لتسميع القرآن بصوتك ومقارنته بالنص
         NSSpeechRecognitionUsageDescription: للتعرّف على تلاوتك وكشف الأخطاء في الحفظ
         NSSupportsLiveActivities: true
@@ -65,6 +65,8 @@ targets:
       properties:
         CFBundleDisplayName: منار القرآن
         CFBundleName: SalahWidget
+        NSLocationWhenInUseUsageDescription: لعرض أوقات الصلاة حسب موقعك
+        NSWidgetWantsLocation: true
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:

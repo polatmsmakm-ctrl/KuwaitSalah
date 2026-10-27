@@ -7,7 +7,7 @@ struct RamadanCard: View {
 
     static func isRamadan(_ date: Date, offset: Int) -> Bool {
         var cal = Calendar(identifier: .islamicUmmAlQura)
-        cal.timeZone = TimeZone(identifier: "Asia/Kuwait") ?? .current
+        cal.timeZone = PrayerCalc.timeZone
         let d = cal.date(byAdding: .day, value: offset, to: date) ?? date
         return cal.component(.month, from: d) == 9
     }
@@ -15,11 +15,11 @@ struct RamadanCard: View {
     var body: some View {
         if Self.isRamadan(now, offset: store.prefs.hijriOffset) {
             let fmt = store.fmt
-            let t = PrayerCalc.compute(day: now, region: store.region, settings: store.prefs.calc)
+            let t = PrayerCalc.compute(day: now, region: store.region, settings: store.calc)
             let imsak = t[.fajr]
             let iftar = t[.maghrib]
             let fasting = now >= imsak && now < iftar
-            let target: Date = now < imsak ? imsak : (now < iftar ? iftar : (PrayerCalc.calendar.date(byAdding: .day, value: 1, to: now).map { PrayerCalc.compute(day: $0, region: store.region, settings: store.prefs.calc)[.fajr] } ?? iftar))
+            let target: Date = now < imsak ? imsak : (now < iftar ? iftar : (PrayerCalc.calendar.date(byAdding: .day, value: 1, to: now).map { PrayerCalc.compute(day: $0, region: store.region, settings: store.calc)[.fajr] } ?? iftar))
             VStack(spacing: 8) {
                 Label("رمضان كريم", systemImage: "moon.stars.fill")
                     .font(.headline).foregroundStyle(Theme.gold)

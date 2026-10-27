@@ -71,7 +71,7 @@ struct TimetableView: View {
     }
 
     private func dayRow(_ d: Date, fmt: Fmt) -> some View {
-        let dt = PrayerCalc.compute(day: d, region: store.region, settings: store.prefs.calc)
+        let dt = PrayerCalc.compute(day: d, region: store.region, settings: store.calc)
         let isToday = cal.isDateInToday(d)
         let friday = PrayerCalc.isFriday(d)
         let dayNum = fmt.custom(d, "d")

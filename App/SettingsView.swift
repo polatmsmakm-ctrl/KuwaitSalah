@@ -5,31 +5,41 @@ import UIKit
 struct SettingsView: View {
     @EnvironmentObject var store: Store
     @State private var authStatus: UNAuthorizationStatus = .notDetermined
-    @StateObject private var locator = LocationHelper()
+    @EnvironmentObject var locator: LocationHelper
     @AppStorage("liveactivity.on") private var liveOn = true
     @AppStorage("adhan.customSound") private var customSound = true
 
     var body: some View {
         Form {
                 Section {
-                    Picker("المحافظة", selection: $store.prefs.regionID) {
-                        ForEach(Region.all) { r in
-                            Text(r.name).tag(r.id)
-                        }
+                    Picker("تحديد الموقع", selection: $store.prefs.locMode) {
+                        Text("تلقائي (حسب موقعي)").tag(0)
+                        Text("محافظة في الكويت").tag(1)
+                        Text("مدينة أخرى").tag(2)
                     }
-                    Button {
-                        locator.onRegion = { r in store.prefs.regionID = r.id }
-                        locator.detect()
-                    } label: {
-                        Label("تحديد من موقعي", systemImage: "location.fill")
+                    if store.prefs.locMode == 0 {
+                        Button {
+                            locator.detect(force: true)
+                        } label: {
+                            Label("تحديث موقعي الآن", systemImage: "location.fill")
+                        }
+                        Text("الموقع الحالي: \(store.region.label)").font(.footnote)
+                    } else if store.prefs.locMode == 1 {
+                        Picker("المحافظة", selection: $store.prefs.regionID) {
+                            ForEach(Region.all) { r in Text(r.name).tag(r.id) }
+                        }
+                    } else {
+                        Picker("المدينة", selection: $store.prefs.cityID) {
+                            ForEach(Region.cities) { r in Text(r.name).tag(r.id) }
+                        }
                     }
                     if let msg = locationMessage {
                         Text(msg).font(.footnote).foregroundStyle(.secondary)
                     }
                 } header: {
-                    Text("المنطقة")
+                    Text("الموقع")
                 } footer: {
-                    Text("الموقع يُستخدم مرة واحدة لاختيار أقرب محافظة ولا يُحفظ. يمكنك دائماً الاختيار يدوياً.")
+                    Text("الأوقات واتجاه القبلة تُحسب حسب موقعك (السعودية، الكويت، لبنان وغيرها) وبتوقيت بلدك. الموقع يُطلب عند فتح التطبيق ولا يُرسل لأي جهة.")
                 }
 
                 Section {
@@ -54,6 +64,8 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Toggle("حسب طريقة بلدي تلقائياً", isOn: $store.prefs.calcAuto)
+                    if !store.prefs.calcAuto {
                     Stepper(value: $store.prefs.calc.fajrAngle, in: 14...20, step: 0.5) {
                         HStack {
                             Text("زاوية الفجر")
@@ -70,19 +82,22 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    }
                     Picker("العصر", selection: $store.prefs.calc.hanafiAsr) {
                         Text("المثل (جمهور)").tag(false)
                         Text("المثلين (حنفي)").tag(true)
                     }
+                    if !store.prefs.calcAuto {
                     Button("إعادة ضبط طريقة الكويت") {
                         store.prefs.calc.fajrAngle = 18
                         store.prefs.calc.ishaAngle = 17.5
                         store.prefs.calc.hanafiAsr = false
                     }
+                    }
                 } header: {
                     Text("طريقة الحساب")
                 } footer: {
-                    Text("الحساب فلكي داخل التطبيق بدون إنترنت (فجر ١٨° وعشاء ١٧٫٥°). إذا اختلف وقت عن تقويم الأوقاف عدّله بالدقائق من الأسفل.")
+                    Text("الحساب فلكي داخل التطبيق بدون إنترنت. التلقائي: الكويت (فجر ١٨° وعشاء ١٧٫٥°)، السعودية والخليج (أم القرى)، لبنان والشام (رابطة العالم الإسلامي)، مصر (الهيئة المصرية). إذا اختلف وقت عن تقويم بلدك عدّله بالدقائق من الأسفل.")
                 }
 
                 Section("تعديل الدقائق") {
@@ -161,9 +176,8 @@ struct SettingsView: View {
         switch locator.status {
         case .idle: return nil
         case .locating: return "جارٍ تحديد الموقع…"
-        case .denied: return "صلاحية الموقع مرفوضة. اختر المحافظة يدوياً أو فعّلها من إعدادات الجهاز."
-        case .failed: return "تعذّر تحديد الموقع. اختر المحافظة يدوياً."
-        case .outsideKuwait: return "موقعك خارج الكويت. التطبيق مخصص للكويت، اختر المحافظة يدوياً."
+        case .denied: return "صلاحية الموقع مرفوضة. اختر المدينة يدوياً أو فعّل الموقع من إعدادات الجهاز."
+        case .failed: return "تعذّر تحديد الموقع. اختر المدينة يدوياً."
         case .found(let n): return "تم اختيار: \(n)"
         }
     }

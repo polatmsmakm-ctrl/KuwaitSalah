@@ -133,3 +133,39 @@ final class HadithTests: XCTestCase {
         XCTAssertTrue(hits.contains(0), "hadith 1 should match")
     }
 }
+
+final class LocationMethodTests: XCTestCase {
+    private func hm(_ d: Date, _ tz: TimeZone) -> (Int, Int) {
+        let c = PrayerCalc.calendarFor(tz).dateComponents([.hour, .minute], from: d)
+        return (c.hour ?? -1, c.minute ?? -1)
+    }
+
+    func testMethodByTimezone() {
+        XCTAssertEqual(CalcSettings.method(forTZ: "Asia/Kuwait").ishaAngle, 17.5)
+        XCTAssertEqual(CalcSettings.method(forTZ: "Asia/Riyadh").ishaMinutes, 90)
+        XCTAssertEqual(CalcSettings.method(forTZ: "Asia/Beirut").ishaAngle, 17)
+    }
+
+    func testRiyadhAndBeirutAreLocalAndOrdered() {
+        for r in [Region.cities.first { $0.id == "c-riyadh" }!, Region.cities.first { $0.id == "c-beirut" }!] {
+            let cal = PrayerCalc.calendarFor(r.timeZone)
+            let day = cal.date(from: DateComponents(year: 2026, month: 10, day: 27, hour: 12))!
+            let t = PrayerCalc.compute(day: day, region: r, settings: CalcSettings.method(forTZ: r.tzID))
+            XCTAssertLessThan(t[.fajr], t[.sunrise])
+            XCTAssertLessThan(t[.sunrise], t[.dhuhr])
+            XCTAssertLessThan(t[.dhuhr], t[.asr])
+            XCTAssertLessThan(t[.asr], t[.maghrib])
+            XCTAssertLessThan(t[.maghrib], t[.isha])
+            XCTAssertEqual(hm(t[.dhuhr], r.timeZone).0, 11)
+        }
+    }
+
+    func testOldPrefsKeepCustomAngles() throws {
+        let json = #"{"calc":{"fajrAngle":19}}"#.data(using: .utf8)!
+        let p = try JSONDecoder().decode(Prefs.self, from: json)
+        XCTAssertFalse(p.calcAuto)
+        let q = try JSONDecoder().decode(Prefs.self, from: "{}".data(using: .utf8)!)
+        XCTAssertTrue(q.calcAuto)
+        XCTAssertEqual(q.locMode, 0)
+    }
+}

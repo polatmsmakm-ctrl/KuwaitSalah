@@ -12,7 +12,23 @@ struct KuwaitSalahApp: App {
     @StateObject private var memo = MemoStore()
     @StateObject private var offline = OfflineStore()
     @StateObject private var notes = NotesStore()
+    @StateObject private var locator = LocationHelper()
     @Environment(\.scenePhase) private var phase
+
+    private func setupLocator() {
+        locator.onKuwait = { r in
+            if store.prefs.regionID != r.id { store.prefs.regionID = r.id }
+            if store.prefs.place != nil { store.prefs.place = nil }
+        }
+        locator.onPlace = { p in
+            // لا نغيّر إلا إذا تحرّك المستخدم أكثر من ٥ كم (لتفادي إعادة جدولة الإشعارات بلا داعٍ)
+            if let old = store.prefs.place,
+               old.tz == p.tz,
+               Region.distanceKm(old.lat, old.lng, p.lat, p.lng) < 5 { return }
+            store.prefs.place = p
+        }
+        if store.prefs.locMode == 0 { locator.detect(force: false) }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -27,13 +43,16 @@ struct KuwaitSalahApp: App {
                 .environmentObject(memo)
                 .environmentObject(offline)
                 .environmentObject(notes)
+                .environmentObject(locator)
+                .onAppear { setupLocator() }
                 .environment(\.layoutDirection, .rightToLeft)
                 .preferredColorScheme(store.colorScheme)
                 .tint(Theme.accent)
                 .onChange(of: phase) { _, newPhase in
                     if newPhase == .active {
+                        if store.prefs.locMode == 0 { locator.detect(force: false) }
                         store.refreshNotifications()
-                        LiveActivityManager.sync(region: store.region, calc: store.prefs.calc)
+                        LiveActivityManager.sync(region: store.region, calc: store.calc)
                     }
                 }
                 .onChange(of: store.prefs) { _, _ in

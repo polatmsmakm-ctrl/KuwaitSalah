@@ -1,17 +1,22 @@
 import Foundation
 import CoreLocation
 
-/// تحديد أقرب محافظة من موقع الجهاز (مرة واحدة عند الطلب فقط، بدون تتبع مستمر)
+/// تحديد موقع المستخدم لحساب الأوقات والقبلة (طلب واحد عند الحاجة، بدون تتبع مستمر)
 final class LocationHelper: NSObject, ObservableObject, CLLocationManagerDelegate {
     enum Status: Equatable {
-        case idle, locating, denied, failed, outsideKuwait
+        case idle, locating, denied, failed
         case found(String)
     }
 
     @Published var status: Status = .idle
-    var onRegion: ((Region) -> Void)?
+    /// موقع داخل الكويت: نستخدم أقرب محافظة (السلوك القديم)
+    var onKuwait: ((Region) -> Void)?
+    /// أي مكان آخر في العالم
+    var onPlace: ((Place) -> Void)?
 
     private let manager = CLLocationManager()
+    private let geocoder = CLGeocoder()
+    private var lastRequest = Date.distantPast
 
     override init() {
         super.init()
@@ -19,7 +24,9 @@ final class LocationHelper: NSObject, ObservableObject, CLLocationManagerDelegat
         manager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
 
-    func detect() {
+    /// force: من زر المستخدم. بدونها نتجاهل الطلبات المتكررة خلال ٣٠ دقيقة.
+    func detect(force: Bool = true) {
+        if !force && Date().timeIntervalSince(lastRequest) < 1800 { return }
         switch manager.authorizationStatus {
         case .denied, .restricted:
             status = .denied
@@ -28,6 +35,7 @@ final class LocationHelper: NSObject, ObservableObject, CLLocationManagerDelegat
             manager.requestWhenInUseAuthorization()
         default:
             status = .locating
+            lastRequest = Date()
             manager.requestLocation()
         }
     }
@@ -36,18 +44,30 @@ final class LocationHelper: NSObject, ObservableObject, CLLocationManagerDelegat
         guard status == .locating else { return }
         switch manager.authorizationStatus {
         case .denied, .restricted: status = .denied
-        case .authorizedAlways, .authorizedWhenInUse: manager.requestLocation()
+        case .authorizedAlways, .authorizedWhenInUse:
+            lastRequest = Date()
+            manager.requestLocation()
         default: break
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let l = locations.last else { return }
-        if let r = Region.nearest(lat: l.coordinate.latitude, lng: l.coordinate.longitude) {
-            status = .found(r.name)
-            onRegion?(r)
-        } else {
-            status = .outsideKuwait
+        let lat = l.coordinate.latitude, lng = l.coordinate.longitude
+        if let r = Region.nearest(lat: lat, lng: lng) {
+            status = .found("الكويت · \(r.name)")
+            onKuwait?(r)
+            return
+        }
+        geocoder.reverseGeocodeLocation(l, preferredLocale: Locale(identifier: "ar")) { [weak self] marks, _ in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                let m = marks?.first
+                let name = m?.locality ?? m?.subAdministrativeArea ?? m?.administrativeArea ?? m?.country ?? "موقعك الحالي"
+                let tz = m?.timeZone?.identifier ?? TimeZone.current.identifier
+                self.status = .found(name)
+                self.onPlace?(Place(name: name, lat: lat, lng: lng, tz: tz))
+            }
         }
     }
 

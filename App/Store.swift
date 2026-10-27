@@ -1,7 +1,20 @@
 import SwiftUI
 import UserNotifications
 
+struct Place: Codable, Equatable {
+    var name: String
+    var lat: Double
+    var lng: Double
+    var tz: String
+}
+
 struct Prefs: Codable, Equatable {
+    /// 0 تلقائي حسب موقعك، 1 محافظة كويتية، 2 مدينة من القائمة
+    var locMode: Int = 0
+    var place: Place? = nil
+    var cityID: String = "c-makkah"
+    /// طريقة الحساب تلقائية حسب الدولة (وإلا تُستخدم الزوايا اليدوية)
+    var calcAuto: Bool = true
     var regionID: String = "capital"
     var calc: CalcSettings = CalcSettings()
     var use24h: Bool = false
@@ -22,6 +35,7 @@ struct Prefs: Codable, Equatable {
     init() {}
 
     enum CodingKeys: String, CodingKey {
+        case locMode, place, cityID, calcAuto
         case regionID, calc, use24h, arabicDigits, hijriOffset, iqama
         case adhanOn, notifySunrise, notifyIqama, preMinutes, appearance, statsEnabled
     }
@@ -31,6 +45,12 @@ struct Prefs: Codable, Equatable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         regionID = try c.decodeIfPresent(String.self, forKey: .regionID) ?? "capital"
         calc = try c.decodeIfPresent(CalcSettings.self, forKey: .calc) ?? CalcSettings()
+        locMode = try c.decodeIfPresent(Int.self, forKey: .locMode) ?? 0
+        place = try c.decodeIfPresent(Place.self, forKey: .place)
+        cityID = try c.decodeIfPresent(String.self, forKey: .cityID) ?? "c-makkah"
+        // من عدّل الزوايا يدوياً في نسخة سابقة يبقى على إعداده
+        let customized = calc.fajrAngle != 18 || calc.ishaAngle != 17.5
+        calcAuto = try c.decodeIfPresent(Bool.self, forKey: .calcAuto) ?? !customized
         use24h = try c.decodeIfPresent(Bool.self, forKey: .use24h) ?? false
         arabicDigits = try c.decodeIfPresent(Bool.self, forKey: .arabicDigits) ?? true
         hijriOffset = try c.decodeIfPresent(Int.self, forKey: .hijriOffset) ?? 0
@@ -67,7 +87,10 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
 final class Store: ObservableObject {
     @Published var prefs: Prefs {
-        didSet { save() }
+        didSet {
+            save()
+            PrayerCalc.timeZone = region.timeZone
+        }
     }
     /// التبويب المحدد (للاختصارات)
     @Published var selectedTab: Int = 0
@@ -92,6 +115,7 @@ final class Store: ObservableObject {
         let saved = UserDefaults.standard.stringArray(forKey: "prayed.v1") ?? []
         prayed = Set(saved)
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
+        PrayerCalc.timeZone = region.timeZone
     }
 
     private func save() {
@@ -107,7 +131,23 @@ final class Store: ObservableObject {
     var fmt: Fmt { Fmt(use24h: prefs.use24h, arabicDigits: prefs.arabicDigits) }
 
     var region: Region {
-        Region.all.first(where: { $0.id == prefs.regionID }) ?? Region.all[0]
+        let kuwait = Region.all.first(where: { $0.id == prefs.regionID }) ?? Region.all[0]
+        switch prefs.locMode {
+        case 2:
+            return Region.cities.first(where: { $0.id == prefs.cityID }) ?? kuwait
+        case 0:
+            if let p = prefs.place {
+                return Region(id: "gps", name: p.name, lat: p.lat, lng: p.lng, tzID: p.tz)
+            }
+            return kuwait
+        default:
+            return kuwait
+        }
+    }
+
+    /// إعدادات الحساب الفعلية (حسب دولة المستخدم ما لم يختر الزوايا يدوياً)
+    var calc: CalcSettings {
+        prefs.calcAuto ? prefs.calc.withMethod(of: region.tzID) : prefs.calc
     }
 
     var colorScheme: ColorScheme? {
@@ -135,7 +175,8 @@ final class Store: ObservableObject {
     func refreshNotifications() {
         refreshTask?.cancel()
         let region = self.region
-        let prefs = self.prefs
+        var prefs = self.prefs
+        prefs.calc = self.calc
         refreshTask = Task {
             try? await Task.sleep(nanoseconds: 700_000_000)
             if Task.isCancelled { return }

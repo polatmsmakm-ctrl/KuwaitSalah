@@ -30,7 +30,8 @@ final class HeadingProvider: NSObject, ObservableObject, CLLocationManagerDelega
 
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         guard newHeading.headingAccuracy >= 0 else { return }
-        let h = (newHeading.magneticHeading + declination).truncatingRemainder(dividingBy: 360.0)
+        // الاتجاه الحقيقي (يشمل الانحراف المغناطيسي لموقعك)، وإلا نقدّره للكويت
+        let h = newHeading.trueHeading >= 0 ? newHeading.trueHeading : (newHeading.magneticHeading + declination).truncatingRemainder(dividingBy: 360.0)
         DispatchQueue.main.async {
             self.heading = h
             self.gotReading = true

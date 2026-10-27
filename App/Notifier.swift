@@ -65,7 +65,7 @@ enum Notifier {
                 }
 
                 let adhanTitle = p == .sunrise ? "الشروق" : "حان الآن أذان \(name)"
-                if let r = request(id: "adhan-\(tag)", title: adhanTitle, body: "الكويت", fire: t, now: now, custom: p != .sunrise) {
+                if let r = request(id: "adhan-\(tag)", title: adhanTitle, body: region.label, fire: t, now: now, custom: p != .sunrise) {
                     items.append(r)
                 }
 

@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import CoreLocation
 
 // الويدجت يحسب الأوقات بنفسه (مدينة الكويت، طريقة الكويت).
 // الإقامة هنا بالقيم الافتراضية في Shared/Iqama.swift لأن الحساب المجاني لا يدعم مشاركة الإعدادات بين التطبيق والويدجت.
@@ -10,10 +11,21 @@ struct SalahEntry: TimelineEntry {
     let next: Prayer
     let nextDate: Date
 
-    static let region = Region.all[0]
-    static let calc = CalcSettings()
+    /// موقع الجهاز (آخر موقع معروف بصلاحية التطبيق)؛ وإلا الكويت
+    static var region: Region {
+        if let l = CLLocationManager().location {
+            let lat = l.coordinate.latitude, lng = l.coordinate.longitude
+            if let k = Region.nearest(lat: lat, lng: lng) { return k }
+            return Region(id: "gps", name: "موقعك", lat: lat, lng: lng, tzID: TimeZone.current.identifier)
+        }
+        return Region.all[0]
+    }
+    static var calc: CalcSettings { CalcSettings.method(forTZ: region.tzID) }
 
     static func make(at date: Date) -> SalahEntry {
+        let region = SalahEntry.region
+        let calc = CalcSettings.method(forTZ: region.tzID)
+        PrayerCalc.timeZone = region.timeZone
         let today = PrayerCalc.compute(day: date, region: region, settings: calc)
         let nxt = PrayerCalc.next(after: date, region: region, settings: calc)
         return SalahEntry(date: date, today: today, next: nxt.prayer, nextDate: nxt.date)
@@ -31,10 +43,13 @@ struct SalahProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<SalahEntry>) -> Void) {
         let now = Date()
+        let region = SalahEntry.region
+        let calc = CalcSettings.method(forTZ: region.tzID)
+        PrayerCalc.timeZone = region.timeZone
         var dates: [Date] = [now]
         for off in 0...1 {
             let day = PrayerCalc.calendar.date(byAdding: .day, value: off, to: now) ?? now
-            let dt = PrayerCalc.compute(day: day, region: SalahEntry.region, settings: SalahEntry.calc)
+            let dt = PrayerCalc.compute(day: day, region: region, settings: calc)
             for p in Prayer.allCases {
                 let t = dt[p]
                 if t > now { dates.append(t) }
