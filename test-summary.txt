@@ -1,0 +1,67 @@
+Test Case '-[KuwaitSalahTests.HadithTests testBooksLoadWithExpectedCountsAndContiguousNumbers]' started.
+Test Case '-[KuwaitSalahTests.HadithTests testBooksLoadWithExpectedCountsAndContiguousNumbers]' passed (0.236 seconds).
+Test Case '-[KuwaitSalahTests.HadithTests testSearchFindsIntentionsHadith]' started.
+Test Case '-[KuwaitSalahTests.HadithTests testSearchFindsIntentionsHadith]' passed (1.223 seconds).
+	 Executed 2 tests, with 0 failures (0 unexpected) in 1.459 (1.460) seconds
+Test Case '-[KuwaitSalahTests.LocationMethodTests testMethodByTimezone]' started.
+Test Case '-[KuwaitSalahTests.LocationMethodTests testMethodByTimezone]' passed (0.001 seconds).
+Test Case '-[KuwaitSalahTests.LocationMethodTests testOldPrefsKeepCustomAngles]' started.
+Test Case '-[KuwaitSalahTests.LocationMethodTests testOldPrefsKeepCustomAngles]' passed (0.007 seconds).
+Test Case '-[KuwaitSalahTests.LocationMethodTests testRiyadhAndBeirutAreLocalAndOrdered]' started.
+Test Case '-[KuwaitSalahTests.LocationMethodTests testRiyadhAndBeirutAreLocalAndOrdered]' passed (0.002 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.010 (0.454) seconds
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testDhuhrNearNoonInKuwait]' started.
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testDhuhrNearNoonInKuwait]' passed (0.002 seconds).
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testMinuteAdjustmentMovesTimeExactly]' started.
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testMinuteAdjustmentMovesTimeExactly]' passed (0.002 seconds).
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testNearestRegion]' started.
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testNearestRegion]' passed (0.022 seconds).
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testOrderAndRangesAcrossYear]' started.
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testOrderAndRangesAcrossYear]' passed (0.055 seconds).
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testQiblaFromKuwaitCity]' started.
+Test Case '-[KuwaitSalahTests.PrayerCalcTests testQiblaFromKuwaitCity]' passed (0.001 seconds).
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.082 (0.085) seconds
+Test Case '-[KuwaitSalahTests.PrefsMigrationTests testBadArrayLengthsFallBack]' started.
+Test Case '-[KuwaitSalahTests.PrefsMigrationTests testBadArrayLengthsFallBack]' passed (0.001 seconds).
+Test Case '-[KuwaitSalahTests.PrefsMigrationTests testOldPrefsWithMissingFieldsKeepValues]' started.
+Test Case '-[KuwaitSalahTests.PrefsMigrationTests testOldPrefsWithMissingFieldsKeepValues]' passed (0.001 seconds).
+Test Case '-[KuwaitSalahTests.PrefsMigrationTests testRoundTrip]' started.
+Test Case '-[KuwaitSalahTests.PrefsMigrationTests testRoundTrip]' passed (0.001 seconds).
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.002 (0.006) seconds
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testParseChapterAudioTimings]' started.
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testParseChapterAudioTimings]' passed (0.001 seconds).
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testParsePageWordsAndGroupsByLine]' started.
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testParsePageWordsAndGroupsByLine]' passed (0.002 seconds).
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testStripHTMLKeepsParagraphs]' started.
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testStripHTMLKeepsParagraphs]' passed (0.019 seconds).
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testSurahStartPagesAreComplete]' started.
+Test Case '-[KuwaitSalahTests.QuranAPIParsingTests testSurahStartPagesAreComplete]' passed (0.001 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.023 (0.024) seconds
+Test Case '-[KuwaitSalahTests.QuranTests testCounts]' started.
+Test Case '-[KuwaitSalahTests.QuranTests testCounts]' passed (0.165 seconds).
+Test Case '-[KuwaitSalahTests.QuranTests testNoEmptyAyahAndNoOddSpaces]' started.
+Test Case '-[KuwaitSalahTests.QuranTests testNoEmptyAyahAndNoOddSpaces]' passed (0.172 seconds).
+Test Case '-[KuwaitSalahTests.QuranTests testSearchFindsAyatAlKursi]' started.
+Test Case '-[KuwaitSalahTests.QuranTests testSearchFindsAyatAlKursi]' passed (0.171 seconds).
+Test Case '-[KuwaitSalahTests.QuranTests testSearchKeyIgnoresDiacriticsAndAlef]' started.
+Test Case '-[KuwaitSalahTests.QuranTests testSearchKeyIgnoresDiacriticsAndAlef]' passed (0.131 seconds).
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.639 (2.154) seconds
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testDiacriticsAndAlefVariantsDoNotCountAsMistakes]' started.
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testDiacriticsAndAlefVariantsDoNotCountAsMistakes]' passed (0.007 seconds).
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testExactRecitationIsAllCorrect]' started.
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testExactRecitationIsAllCorrect]' passed (0.003 seconds).
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testNothingHeardIsAllPending]' started.
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testNothingHeardIsAllPending]' passed (0.002 seconds).
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testPartialRecitationLeavesRestPending]' started.
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testPartialRecitationLeavesRestPending]' passed (0.001 seconds).
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testSkippedWordIsMissed]' started.
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testSkippedWordIsMissed]' passed (0.001 seconds).
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testWrongWordIsWrongAndKeepsHeardWord]' started.
+Test Case '-[KuwaitSalahTests.RecitationAlignerTests testWrongWordIsWrongAndKeepsHeardWord]' passed (0.001 seconds).
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.014 (0.228) seconds
+Test Case '-[KuwaitSalahTests.TafsirDisplayTests testDisplayStripsBidiControlsAndForcesRTL]' started.
+Test Case '-[KuwaitSalahTests.TafsirDisplayTests testDisplayStripsBidiControlsAndForcesRTL]' passed (0.003 seconds).
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.003 (0.039) seconds
+	 Executed 28 tests, with 0 failures (0 unexpected) in 2.231 (4.453) seconds
+	 Executed 28 tests, with 0 failures (0 unexpected) in 2.231 (4.455) seconds
+** TEST SUCCEEDED **
